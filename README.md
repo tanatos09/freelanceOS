@@ -112,13 +112,13 @@ manage.py
 
 #### 1. Clone & setup
 ```bash
-git clone <repo>
+git clone https://github.com/tanatos09/freelanceOS
 cd freelanceos
 python -m venv venv
 source venv/bin/activate  # Linux/macOS
 venv\Scripts\activate      # Windows
 
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 ```
 
 #### 2. Database
