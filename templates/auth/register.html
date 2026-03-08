@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Registrace – FreelanceOS{% endblock %}
+
+{% block body %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">FreelanceOS</div>
+    <div class="auth-tagline">Vytvořte si nový účet</div>
+
+    <div id="alert" class="alert"></div>
+
+    <form id="registerForm" novalidate>
+      <div class="form-group">
+        <label for="email">E-mail</label>
+        <input type="email" id="email" placeholder="vas@email.cz" autocomplete="email" required />
+      </div>
+      <div class="form-group">
+        <label for="password">Heslo</label>
+        <input type="password" id="password" placeholder="min. 8 znaků" autocomplete="new-password" required />
+      </div>
+      <div class="form-group">
+        <label for="password2">Potvrdit heslo</label>
+        <input type="password" id="password2" placeholder="••••••••" autocomplete="new-password" required />
+      </div>
+      <button type="submit" class="btn" id="submitBtn">Vytvořit účet</button>
+    </form>
+
+    <div class="auth-footer">
+      Již máte účet? <a href="/accounts/login/">Přihlásit se</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  if (localStorage.getItem('access_token')) {
+    window.location.href = '/accounts/dashboard/';
+  }
+
+  const form = document.getElementById('registerForm');
+  const alertEl = document.getElementById('alert');
+  const btn = document.getElementById('submitBtn');
+
+  function showAlert(msg, type = 'error') {
+    alertEl.textContent = msg;
+    alertEl.className = `alert alert-${type} show`;
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    alertEl.className = 'alert';
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Registrace…';
+
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const password2 = document.getElementById('password2').value;
+
+    if (password !== password2) {
+      showAlert('Hesla se neshodují.');
+      btn.disabled = false;
+      btn.textContent = 'Vytvořit účet';
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/v1/auth/register/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, password2 }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        // DRF vrací errors jako objekt – zobrazíme první chybu
+        const firstError = Object.values(data).flat()[0] || 'Registrace selhala.';
+        showAlert(firstError);
+        return;
+      }
+
+      localStorage.setItem('access_token', data.access);
+      localStorage.setItem('refresh_token', data.refresh);
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      showAlert('Účet vytvořen! Přesměrování…', 'success');
+      setTimeout(() => { window.location.href = '/accounts/dashboard/'; }, 800);
+    } catch {
+      showAlert('Chyba sítě. Zkuste to znovu.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Vytvořit účet';
+    }
+  });
+</script>
+{% endblock %}

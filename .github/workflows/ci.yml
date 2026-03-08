@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Test & Lint
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: freelanceos_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements/testing.txt
+
+      - name: Run linting
+        run: |
+          flake8 .
+          black --check .
+          isort --check-only .
+
+      - name: Run tests with coverage
+        env:
+          SECRET_KEY: "ci-test-secret-key-not-for-production"
+          DEBUG: "False"
+          DATABASE_URL: "postgres://postgres:postgres@localhost:5432/freelanceos_test"
+          ALLOWED_HOSTS: "localhost,127.0.0.1"
+        run: |
+          pytest --cov --cov-report=xml --cov-report=term-missing
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false

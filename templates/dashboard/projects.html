@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}Projekty – FreelanceOS{% endblock %}
+
+{% block body %}
+<!-- Navbar -->
+<nav class="navbar">
+  <a href="/accounts/dashboard/" class="navbar-brand">FreelanceOS</a>
+  <ul class="navbar-nav">
+    <li><a href="/accounts/dashboard/" data-page="dashboard">Dashboard</a></li>
+    <li><a href="/accounts/clients/" data-page="clients">Klienti</a></li>
+    <li><a href="/accounts/projects/" data-page="projects">Projekty</a></li>
+  </ul>
+  <div class="navbar-right">
+    <span id="userEmail" style="color: var(--muted); font-size: 0.9rem;">…</span>
+    <button class="btn-outline" id="logoutBtn">Odhlásit se</button>
+  </div>
+</nav>
+
+<!-- Main content -->
+<main class="main">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div>
+      <div class="page-title">Projekty</div>
+      <div class="page-sub">Spravujte své projekty a sledujte jejich pokrok</div>
+    </div>
+    <button class="btn-primary" id="addProjectBtn">+ Nový projekt</button>
+  </div>
+
+  <!-- Filters -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+    <input type="text" id="searchInput" placeholder="Hledat projekty..." style="
+      padding: 0.65rem 0.85rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.95rem;
+    " />
+    <select id="statusFilter" style="
+      padding: 0.65rem 0.85rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.95rem;
+    ">
+      <option value="">Všechny statusy</option>
+      <option value="draft">Návrh</option>
+      <option value="active">Aktivní</option>
+      <option value="completed">Hotovo</option>
+      <option value="archived">Archivováno</option>
+      <option value="cancelled">Zrušeno</option>
+    </select>
+    <select id="clientFilter" style="
+      padding: 0.65rem 0.85rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.95rem;
+    ">
+      <option value="">Všichni klienti</option>
+    </select>
+  </div>
+
+  <!-- Projects table -->
+  <div class="table-wrap">
+    <table id="projectsTable">
+      <thead>
+        <tr>
+          <th>Název</th>
+          <th>Klient</th>
+          <th>Status</th>
+          <th>Deadline</th>
+          <th>Rozpočet</th>
+          <th style="text-align: right;">Akce</th>
+        </tr>
+      </thead>
+      <tbody id="projectsTbody">
+        <tr style="text-align: center;">
+          <td colspan="6" style="color: var(--muted);">Načítám...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Empty state -->
+  <div id="emptyState" class="empty-state" style="display: none;">
+    <div class="empty-state-icon">📋</div>
+    <div class="empty-state-title">Žádné projekty</div>
+    <div class="empty-state-text">Zatím jste nevytvořili žádný projekt.</div>
+    <button class="btn-primary" id="addProjectEmptyBtn">Vytvořit první projekt</button>
+  </div>
+</main>
+
+<!-- Add/Edit Project Modal -->
+<div class="modal" id="projectModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modalTitle">Nový projekt</h2>
+      <button class="modal-close" data-modal-close="projectModal">&times;</button>
+    </div>
+
+    <form id="projectForm">
+      <div class="form-group">
+        <label for="projectName">Název projektu *</label>
+        <input type="text" id="projectName" name="name" required />
+      </div>
+
+      <div class="form-group">
+        <label for="projectClient">Klient *</label>
+        <select id="projectClient" name="client" required>
+          <option value="">-- Vyberte klienta --</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="projectDescription">Popis</label>
+        <textarea id="projectDescription" name="description" placeholder="Detailní popis projektu"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="projectStatus">Status</label>
+        <select id="projectStatus" name="status">
+          <option value="draft">Návrh</option>
+          <option value="active">Aktivní</option>
+          <option value="completed">Hotovo</option>
+          <option value="archived">Archivováno</option>
+          <option value="cancelled">Zrušeno</option>
+        </select>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="form-group">
+          <label for="projectBudget">Rozpočet (Kč)</label>
+          <input type="number" id="projectBudget" name="budget" step="0.01" value="0" />
+        </div>
+        <div class="form-group">
+          <label for="projectHours">Odhadnuté hodiny</label>
+          <input type="number" id="projectHours" name="estimated_hours" step="0.5" value="0" />
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="form-group">
+          <label for="projectStartDate">Datum začátku</label>
+          <input type="date" id="projectStartDate" name="start_date" />
+        </div>
+        <div class="form-group">
+          <label for="projectEndDate">Deadline</label>
+          <input type="date" id="projectEndDate" name="end_date" />
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-outline" data-modal-close="projectModal">Zrušit</button>
+        <button type="submit" class="btn-primary">Uložit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% block extra_scripts %}
+<script>
+  UIManager.setActiveNav('projects');
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Dashboard – FreelanceOS{% endblock %}
+
+{% block body %}
+<!-- Navbar -->
+<nav class="navbar">
+  <a href="/accounts/dashboard/" class="navbar-brand">FreelanceOS</a>
+  <ul class="navbar-nav">
+    <li><a href="/accounts/dashboard/" data-page="dashboard">Dashboard</a></li>
+    <li><a href="/accounts/clients/" data-page="clients">Klienti</a></li>
+    <li><a href="/accounts/projects/" data-page="projects">Projekty</a></li>
+  </ul>
+  <div class="navbar-right">
+    <span id="userEmail" style="color: var(--muted); font-size: 0.9rem;">…</span>
+    <button class="btn-outline" id="logoutBtn">Odhlásit se</button>
+  </div>
+</nav>
+
+<!-- Main content -->
+<main class="main">
+  <div class="page-title">Dashboard</div>
+  <div class="page-sub" id="greeting">Vítejte zpět!</div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-label">Aktivní projekty</div>
+      <div class="card-value accent" id="activeProjectsCount">—</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Klienti</div>
+      <div class="card-value" id="clientsCount">—</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Všechny projekty</div>
+      <div class="card-value" id="projectsCount">—</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Po termínu</div>
+      <div class="card-value text-danger" id="overdueCount">—</div>
+    </div>
+  </div>
+
+  <div style="margin-top: 3rem;">
+    <a href="/accounts/clients/" class="btn-primary">Spravovat klienty</a>
+    <a href="/accounts/projects/" class="btn-primary" style="margin-left: 1rem;">Spravovat projekty</a>
+  </div>
+</main>
+
+<script>
+  UIManager.setActiveNav('dashboard');
+
+  async function loadDashboard() {
+    try {
+      // Load clients count
+      const clientsRes = await api.clients.list();
+      document.getElementById('clientsCount').textContent = clientsRes.length || 0;
+
+      // Load projects stats
+      const projectsRes = await api.projects.list();
+      document.getElementById('projectsCount').textContent = projectsRes.length || 0;
+
+      const activeProjects = projectsRes.filter(p => p.status === 'active').length;
+      document.getElementById('activeProjectsCount').textContent = activeProjects || 0;
+
+      const overdueProjects = projectsRes.filter(p => p.is_overdue).length;
+      document.getElementById('overdueCount').textContent = overdueProjects || 0;
+    } catch (err) {
+      console.error('Failed to load dashboard:', err);
+      UIManager.error('Chyba při načítání dashboardu');
+    }
+  }
+
+  // Load user and dashboard data
+  const user = await UIManager.loadUser();
+  if (user) {
+    document.getElementById('userEmail').textContent = user.email;
+    document.getElementById('greeting').textContent = `Vítejte zpět, ${user.email}!`;
+  }
+
+  loadDashboard();
+</script>
+{% endblock %}

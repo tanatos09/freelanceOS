@@ -1,0 +1,3 @@
+"""
+Testy pro aplikaci clients.
+"""

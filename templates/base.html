@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}FreelanceOS{% endblock %}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2e3347;
+      --accent: #6c63ff;
+      --accent-hover: #5a52e0;
+      --text: #e4e6f0;
+      --muted: #7a7f99;
+      --danger: #ff4d6d;
+      --success: #22c55e;
+      --radius: 10px;
+      --font: 'Segoe UI', system-ui, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100vh;
+    }
+
+    /* ── Auth layout ── */
+    .auth-wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .auth-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .auth-logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 0.25rem;
+    }
+
+    .auth-tagline {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-bottom: 2rem;
+    }
+
+    /* ── Form ── */
+    .form-group {
+      margin-bottom: 1.1rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.65rem 0.85rem;
+      color: var(--text);
+      font-size: 0.95rem;
+      transition: border-color .2s;
+      outline: none;
+    }
+
+    input:focus { border-color: var(--accent); }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s;
+      margin-top: 1.5rem;
+    }
+
+    .btn:hover { background: var(--accent-hover); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    .auth-footer {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .auth-footer a { color: var(--accent); text-decoration: none; }
+    .auth-footer a:hover { text-decoration: underline; }
+
+    /* ── Alerts ── */
+    .alert {
+      padding: 0.7rem 1rem;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      margin-bottom: 1.1rem;
+      display: none;
+    }
+
+    .alert.show { display: block; }
+    .alert-error { background: rgba(255,77,109,.12); color: var(--danger); border: 1px solid rgba(255,77,109,.25); }
+    .alert-success { background: rgba(34,197,94,.1); color: var(--success); border: 1px solid rgba(34,197,94,.2); }
+
+    /* ── Dashboard ── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .topbar-logo { font-size: 1.2rem; font-weight: 700; color: var(--accent); }
+    .topbar-user { display: flex; align-items: center; gap: .75rem; font-size: .9rem; }
+
+    .btn-outline {
+      padding: 0.4rem 0.9rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: border-color .2s, color .2s;
+    }
+
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+    .main {
+      padding: 2rem;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .page-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .page-sub {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-bottom: 2rem;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.4rem;
+    }
+
+    .card-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+    .card-value { font-size: 1.8rem; font-weight: 700; margin-top: .3rem; }
+    .card-value.accent { color: var(--accent); }
+
+    /* ── Spinner ── */
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Navigation ── */
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .navbar-brand {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .navbar-nav {
+      display: flex;
+      gap: 2rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .navbar-nav a {
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.95rem;
+      transition: color .2s;
+      padding: 0.25rem 0;
+    }
+
+    .navbar-nav a:hover { color: var(--accent); }
+    .navbar-nav a.active { color: var(--accent); border-bottom: 2px solid var(--accent); padding-bottom: 0.25rem; }
+
+    .navbar-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    /* ── Tables ── */
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 1.5rem;
+    }
+
+    table {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      padding: 1rem;
+      text-align: left;
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      font-weight: 600;
+    }
+
+    td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
+    }
+
+    tbody tr:hover { background: rgba(108, 99, 255, 0.05); }
+
+    .td-actions {
+      display: flex;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    .btn-sm {
+      padding: 0.3rem 0.7rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.75rem;
+      transition: all .2s;
+    }
+
+    .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-sm.danger { border-color: var(--danger); color: var(--danger); }
+    .btn-sm.danger:hover { background: rgba(255, 77, 109, 0.1); }
+
+    /* ── Buttons ── */
+    .btn-primary {
+      display: inline-block;
+      padding: 0.65rem 1.2rem;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s;
+      text-decoration: none;
+    }
+
+    .btn-primary:hover { background: var(--accent-hover); }
+
+    /* ── Modal ── */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal.show { display: flex; }
+
+    .modal-content {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      max-width: 500px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      animation: slideIn .3s ease-out;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-close:hover { color: var(--accent); }
+
+    .modal-footer {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      justify-content: flex-end;
+    }
+
+    .modal-footer .btn { margin: 0 0 0 0; width: auto; }
+
+    /* ── Forms ── */
+    .form-group {
+      margin-bottom: 1.2rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.65rem 0.85rem;
+      color: var(--text);
+      font-size: 0.95rem;
+      font-family: inherit;
+      transition: border-color .2s;
+      outline: none;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .form-error {
+      color: var(--danger);
+      font-size: 0.75rem;
+      margin-top: 0.3rem;
+    }
+
+    /* ── Status badges ── */
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.65rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .badge-draft { background: rgba(122, 127, 153, 0.2); color: var(--muted); }
+    .badge-active { background: rgba(34, 197, 94, 0.2); color: var(--success); }
+    .badge-completed { background: rgba(34, 197, 94, 0.2); color: var(--success); }
+    .badge-archived { background: rgba(122, 127, 153, 0.2); color: var(--muted); }
+    .badge-cancelled { background: rgba(255, 77, 109, 0.2); color: var(--danger); }
+    .badge-overdue { background: rgba(255, 77, 109, 0.2); color: var(--danger); }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--muted);
+    }
+
+    .empty-state-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    .empty-state-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+
+    .empty-state-text {
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ── Utility ── */
+    .loading { opacity: 0.6; pointer-events: none; }
+    .text-danger { color: var(--danger); }
+    .text-success { color: var(--success); }
+    .text-muted { color: var(--muted); }
+    .mt-3 { margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  {% block body %}{% endblock %}
+
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/app.js"></script>
+  <script src="/static/js/clients.js"></script>
+  <script src="/static/js/projects.js"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

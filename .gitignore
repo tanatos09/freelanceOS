@@ -1,0 +1,73 @@
+# ================================================================
+# FreelanceOS .gitignore
+# ================================================================
+
+# --- Environment (NEVER commit secrets) ---
+.env
+.env.*
+!.env.example
+*.env.local
+*.env.production
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+eggs/
+*.egg
+*.pyo
+
+# --- Virtual environments ---
+venv/
+.venv/
+env/
+ENV/
+
+# --- IDE & editors ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*.orig
+.project
+.pydevproject
+
+# --- Django ---
+*.sqlite3
+db.sqlite3
+staticfiles/
+media/
+
+# --- Coverage & reports ---
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+coverage_report.txt
+lint_report.txt
+
+# --- Testing ---
+.pytest_cache/
+.tox/
+.nox/
+
+# --- OS ---
+.DS_Store
+.DS_Store?
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# --- Logs ---
+*.log
+logs/
+
+# --- Generated / local artifacts ---
+*.sqlite3-journal
+pip-wheel-metadata/
+.mypy_cache/
+.ruff_cache/

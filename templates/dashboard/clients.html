@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Klienti – FreelanceOS{% endblock %}
+
+{% block body %}
+<!-- Navbar -->
+<nav class="navbar">
+  <a href="/accounts/dashboard/" class="navbar-brand">FreelanceOS</a>
+  <ul class="navbar-nav">
+    <li><a href="/accounts/dashboard/" data-page="dashboard">Dashboard</a></li>
+    <li><a href="/accounts/clients/" data-page="clients">Klienti</a></li>
+    <li><a href="/accounts/projects/" data-page="projects">Projekty</a></li>
+  </ul>
+  <div class="navbar-right">
+    <span id="userEmail" style="color: var(--muted); font-size: 0.9rem;">…</span>
+    <button class="btn-outline" id="logoutBtn">Odhlásit se</button>
+  </div>
+</nav>
+
+<!-- Main content -->
+<main class="main">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div>
+      <div class="page-title">Klienti</div>
+      <div class="page-sub">Spravujte své klienty a sledujte jejich projekty</div>
+    </div>
+    <button class="btn-primary" id="addClientBtn">+ Přidat klienta</button>
+  </div>
+
+  <!-- Search -->
+  <div style="margin-bottom: 1.5rem;">
+    <input type="text" id="searchInput" placeholder="Hledat klienty..." style="
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.95rem;
+    " />
+  </div>
+
+  <!-- Clients table -->
+  <div class="table-wrap">
+    <table id="clientsTable">
+      <thead>
+        <tr>
+          <th>Název</th>
+          <th>Email</th>
+          <th>Projektů</th>
+          <th>Vytvořeno</th>
+          <th style="text-align: right;">Akce</th>
+        </tr>
+      </thead>
+      <tbody id="clientsTbody">
+        <tr style="text-align: center;">
+          <td colspan="5" style="color: var(--muted);">Načítám...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Empty state -->
+  <div id="emptyState" class="empty-state" style="display: none;">
+    <div class="empty-state-icon">👤</div>
+    <div class="empty-state-title">Žádní klienti</div>
+    <div class="empty-state-text">Zatím jste nevytvořili žádného klienta.</div>
+    <button class="btn-primary" id="addClientEmptyBtn">Přidat prvního klienta</button>
+  </div>
+</main>
+
+<!-- Add/Edit Client Modal -->
+<div class="modal" id="clientModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modalTitle">Přidat klienta</h2>
+      <button class="modal-close" data-modal-close="clientModal">&times;</button>
+    </div>
+
+    <form id="clientForm">
+      <div class="form-group">
+        <label for="clientName">Jméno *</label>
+        <input type="text" id="clientName" name="name" required />
+      </div>
+
+      <div class="form-group">
+        <label for="clientEmail">Email *</label>
+        <input type="email" id="clientEmail" name="email" required />
+      </div>
+
+      <div class="form-group">
+        <label for="clientCompany">Společnost</label>
+        <input type="text" id="clientCompany" name="company" />
+      </div>
+
+      <div class="form-group">
+        <label for="clientPhone">Telefon</label>
+        <input type="tel" id="clientPhone" name="phone" />
+      </div>
+
+      <div class="form-group">
+        <label for="clientNotes">Poznámky</label>
+        <textarea id="clientNotes" name="notes"></textarea>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-outline" data-modal-close="clientModal">Zrušit</button>
+        <button type="submit" class="btn-primary">Uložit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% block extra_scripts %}
+<script>
+  UIManager.setActiveNav('clients');
+</script>
+{% endblock %}
+{% endblock %}
