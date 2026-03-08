@@ -9,6 +9,7 @@ Pokrývá:
 - Smazání klienta
 - Filtrování a vyhledávání
 """
+
 import pytest
 from rest_framework import status
 

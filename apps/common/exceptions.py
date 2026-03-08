@@ -4,6 +4,7 @@ Custom exceptions for business logic.
 Use these instead of ValueError/generic exceptions in services.
 They are automatically converted to proper HTTP responses by DRF.
 """
+
 from rest_framework import status
 from rest_framework.exceptions import APIException
 

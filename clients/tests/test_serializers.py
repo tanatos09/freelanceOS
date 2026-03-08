@@ -1,6 +1,7 @@
 """
 Testy pro serializery aplikace clients.
 """
+
 import pytest
 from clients.serializers import (
     ClientListSerializer,
@@ -157,7 +158,7 @@ class TestClientCreateUpdateSerializer:
 
         data = {
             "name": "Minimal Client",
-            "email": "minimal@example.com"
+            "email": "minimal@example.com",
             # phone a company nejsou vyplneny
         }
         serializer = ClientCreateUpdateSerializer(data=data, context={"request": request})

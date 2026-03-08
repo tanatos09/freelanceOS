@@ -6,6 +6,7 @@ Sets request.workspace based on:
 2. ?workspace= query parameter
 3. User's default workspace from profile
 """
+
 import logging
 
 logger = logging.getLogger(__name__)

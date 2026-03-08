@@ -1,6 +1,7 @@
 """
 Standard pagination for freelanceOS API.
 """
+
 from rest_framework.pagination import PageNumberPagination
 
 

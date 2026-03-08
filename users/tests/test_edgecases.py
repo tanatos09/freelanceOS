@@ -7,6 +7,7 @@ Pokrývá:
 - Token blacklisting (double logout)
 - Edge-case inputy (dlouhé emaily, SQL injection, atd.)
 """
+
 import threading
 import time
 

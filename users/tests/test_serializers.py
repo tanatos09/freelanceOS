@@ -6,6 +6,7 @@ Pokrývá:
 - Transformaci dat
 - Chybové zprávy
 """
+
 import pytest
 from users.serializers import (
     RegisterSerializer,

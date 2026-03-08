@@ -2,6 +2,7 @@
 Default settings module.
 Uses DJANGO_SETTINGS_MODULE env var, defaults to development.
 """
+
 import os
 
 env = os.environ.get("DJANGO_ENV", "development")

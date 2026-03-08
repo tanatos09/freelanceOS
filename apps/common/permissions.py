@@ -1,6 +1,7 @@
 """
 Custom permissions for freelanceOS.
 """
+
 from rest_framework.permissions import BasePermission
 
 

@@ -3,6 +3,7 @@ Jednoduché Django template views pro frontend (login, register, dashboard, clie
 Všechna business logika jde přes REST API (/api/auth/*, /api/clients/*, /api/projects/*).
 Tyto views pouze servírují HTML stránky.
 """
+
 from django.shortcuts import render
 
 

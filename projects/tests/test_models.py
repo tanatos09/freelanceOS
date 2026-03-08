@@ -7,6 +7,7 @@ Pokrývá:
 - Status choices
 - Metody modelu
 """
+
 import pytest
 from datetime import timedelta
 from django.utils import timezone

@@ -1,6 +1,7 @@
 """
 Lokální fixtures pro aplikaci projects.
 """
+
 import pytest
 from datetime import timedelta
 from django.utils import timezone

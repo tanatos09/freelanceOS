@@ -4,6 +4,7 @@ Lokální pytest fixtures pro aplikaci users.
 Tyto fixtures jsou specifické pro users app a doplňují
 globální fixtures z root/tests/conftest.py
 """
+
 import pytest
 from django.contrib.auth import get_user_model
 

@@ -7,7 +7,6 @@ from rest_framework_simplejwt.exceptions import TokenError
 
 from .serializers import RegisterSerializer, UserSerializer, ChangePasswordSerializer
 
-
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
 

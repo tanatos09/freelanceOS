@@ -10,7 +10,6 @@ from .serializers import (
 )
 from .services import ProjectService
 
-
 # ─── List / Create projects ───────────────────────────────────────────────────
 
 

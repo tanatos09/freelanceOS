@@ -8,6 +8,7 @@ Pokrývá:
 - Autentifikaci a oprávnění
 - Výjimečné případy (neaktivní uživatel, špatná data, apod.)
 """
+
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from rest_framework.test import APITestCase

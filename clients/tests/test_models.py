@@ -7,6 +7,7 @@ Pokrývá:
 - Vztahy
 - Metody modelu
 """
+
 import pytest
 from clients.models import Client
 from django.db import IntegrityError

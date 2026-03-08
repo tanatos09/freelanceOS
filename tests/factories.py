@@ -4,6 +4,7 @@ Factory Boy factories pro generování testovacích dat.
 Tyto factories se používají v testech pro snadné vytváření objektů
 s realistickými daty.
 """
+
 import factory
 from django.contrib.auth import get_user_model
 from clients.models import Client

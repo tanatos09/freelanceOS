@@ -4,12 +4,12 @@ Globální pytest fixtures pro všechny testy.
 Aby se fixtures načetly, musí být tento soubor v root/tests/ složce.
 Pytest jej automaticky discover a načte.
 """
+
 import pytest
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .factories import UserFactory, ClientFactory, ProjectFactory
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # MARKER DEFINITIONS

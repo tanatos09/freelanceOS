@@ -1,6 +1,7 @@
 """
 Reusable model mixins for freelanceOS.
 """
+
 from django.db import models
 
 

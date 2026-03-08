@@ -4,6 +4,7 @@ Base models for freelanceOS.
 All domain models should inherit from BaseModel or SoftDeleteModel
 to get consistent UUID primary keys, timestamps, and soft-delete support.
 """
+
 import uuid
 from django.db import models
 from django.utils import timezone

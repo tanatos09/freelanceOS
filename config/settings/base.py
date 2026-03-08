@@ -2,6 +2,7 @@
 Django base settings for freelanceOS.
 Shared across all environments.
 """
+
 from pathlib import Path
 from datetime import timedelta
 from decouple import config, Csv

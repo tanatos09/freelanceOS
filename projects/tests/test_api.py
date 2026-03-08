@@ -9,6 +9,7 @@ Pokrývá:
 - Smazání projektu
 - Filtrování podle statusu
 """
+
 import pytest
 from rest_framework import status
 from datetime import timedelta

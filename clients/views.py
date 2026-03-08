@@ -10,7 +10,6 @@ from .serializers import (
 )
 from .services import ClientService
 
-
 # ─── List / Create clients ────────────────────────────────────────────────────
 
 
