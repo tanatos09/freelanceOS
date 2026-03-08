@@ -47,9 +47,15 @@ jobs:
 
       - name: Run tests with coverage
         env:
+          DJANGO_ENV: "testing"
           SECRET_KEY: "ci-test-secret-key-not-for-production"
           DEBUG: "False"
-          DATABASE_URL: "postgres://postgres:postgres@localhost:5432/freelanceos_test"
+          DB_ENGINE: "django.db.backends.postgresql"
+          DB_NAME: "freelanceos_test"
+          DB_USER: "postgres"
+          DB_PASSWORD: "postgres"
+          DB_HOST: "localhost"
+          DB_PORT: "5432"
           ALLOWED_HOSTS: "localhost,127.0.0.1"
         run: |
           pytest --cov --cov-report=xml --cov-report=term-missing
