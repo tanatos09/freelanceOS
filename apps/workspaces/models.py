@@ -5,8 +5,9 @@ Every tenant-scoped resource in freelanceOS belongs to a Workspace.
 Users access workspaces through WorkspaceMembership with role-based access.
 """
 
-from django.db import models
 from django.contrib.auth import get_user_model
+from django.db import models
+
 from apps.common.models import BaseModel
 
 User = get_user_model()

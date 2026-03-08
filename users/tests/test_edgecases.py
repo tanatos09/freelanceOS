@@ -11,14 +11,14 @@ Pokrývá:
 import threading
 import time
 
-from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-from rest_framework.test import APITestCase
+from django.test import TestCase
 from rest_framework import status
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.test import APITestCase
 from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.tokens import RefreshToken
 
 User = get_user_model()
 

@@ -4,9 +4,10 @@ Test script pro API testing - vytvoří projekt a zaloguje uživatele
 Spuštění: python test_api.py
 """
 
-import requests
 import json
 from typing import Optional
+
+import requests
 
 BASE_URL = "http://localhost:8000"
 

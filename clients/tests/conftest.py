@@ -3,6 +3,7 @@ Lokální fixtures pro aplikaci clients.
 """
 
 import pytest
+
 from tests.factories import ClientFactory
 
 

@@ -8,9 +8,11 @@ Pokrývá:
 - Metody modelu
 """
 
-import pytest
 from datetime import timedelta
+
+import pytest
 from django.utils import timezone
+
 from projects.models import Project
 
 pytestmark = pytest.mark.unit

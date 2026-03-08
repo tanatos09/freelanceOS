@@ -4,9 +4,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .serializers import (
-    ClientListSerializer,
-    ClientDetailSerializer,
     ClientCreateUpdateSerializer,
+    ClientDetailSerializer,
+    ClientListSerializer,
 )
 from .services import ClientService
 

@@ -9,7 +9,7 @@ import pytest
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .factories import UserFactory, ClientFactory, ProjectFactory
+from .factories import ClientFactory, ProjectFactory, UserFactory
 
 # ─────────────────────────────────────────────────────────────────────────────
 # MARKER DEFINITIONS

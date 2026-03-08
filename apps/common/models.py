@@ -6,6 +6,7 @@ to get consistent UUID primary keys, timestamps, and soft-delete support.
 """
 
 import uuid
+
 from django.db import models
 from django.utils import timezone
 

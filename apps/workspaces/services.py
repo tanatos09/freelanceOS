@@ -3,7 +3,9 @@ Workspace business logic.
 """
 
 from django.utils.text import slugify
-from apps.common.exceptions import NotFoundError, BusinessError
+
+from apps.common.exceptions import BusinessError, NotFoundError
+
 from .models import Workspace, WorkspaceMembership
 
 

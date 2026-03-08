@@ -10,10 +10,11 @@ Pokrývá:
 - Filtrování podle statusu
 """
 
-import pytest
-from rest_framework import status
 from datetime import timedelta
+
+import pytest
 from django.utils import timezone
+from rest_framework import status
 
 pytestmark = pytest.mark.integration
 
@@ -46,7 +47,7 @@ class TestProjectsListEndpoint:
 
     def test_list_only_own_projects(self, auth_client, auth_client_alt, user, user_alt, project):
         """Test: Uživatel vidí pouze své projekty."""
-        from tests.factories import ProjectFactory, ClientFactory
+        from tests.factories import ClientFactory, ProjectFactory
 
         other_client = ClientFactory(user=user_alt)
         ProjectFactory(user=user_alt, client=other_client)
@@ -167,7 +168,7 @@ class TestProjectDetailEndpoint:
 
     def test_get_project_detail_not_own(self, auth_client, user_alt):
         """Test: Uživatel nemůže vidět projekt jiného uživatele."""
-        from tests.factories import ProjectFactory, ClientFactory
+        from tests.factories import ClientFactory, ProjectFactory
 
         other_client = ClientFactory(user=user_alt)
         other_project = ProjectFactory(user=user_alt, client=other_client)
@@ -205,7 +206,7 @@ class TestProjectUpdateEndpoint:
 
     def test_update_project_not_own(self, auth_client, user_alt):
         """Test: Uživatel nemůže editovat projekt jiného uživatele."""
-        from tests.factories import ProjectFactory, ClientFactory
+        from tests.factories import ClientFactory, ProjectFactory
 
         other_client = ClientFactory(user=user_alt)
         other_project = ProjectFactory(user=user_alt, client=other_client)
@@ -245,7 +246,7 @@ class TestProjectDeleteEndpoint:
 
     def test_delete_project_not_own(self, auth_client, user_alt):
         """Test: Uživatel nemůže smazat projekt jiného uživatele."""
-        from tests.factories import ProjectFactory, ClientFactory
+        from tests.factories import ClientFactory, ProjectFactory
 
         other_client = ClientFactory(user=user_alt)
         other_project = ProjectFactory(user=user_alt, client=other_client)

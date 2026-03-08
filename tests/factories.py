@@ -7,6 +7,7 @@ s realistickými daty.
 
 import factory
 from django.contrib.auth import get_user_model
+
 from clients.models import Client
 from projects.models import Project
 

@@ -9,8 +9,9 @@ Pokrývá:
 """
 
 import pytest
-from clients.models import Client
 from django.db import IntegrityError
+
+from clients.models import Client
 
 pytestmark = pytest.mark.unit
 

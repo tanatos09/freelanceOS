@@ -2,13 +2,15 @@
 Testy pro serializery aplikace projects.
 """
 
-import pytest
 from datetime import timedelta
+
+import pytest
 from django.utils import timezone
+
 from projects.serializers import (
-    ProjectListSerializer,
-    ProjectDetailSerializer,
     ProjectCreateUpdateSerializer,
+    ProjectDetailSerializer,
+    ProjectListSerializer,
 )
 
 pytestmark = pytest.mark.unit
