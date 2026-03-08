@@ -20,14 +20,12 @@ class WorkspaceMiddleware:
     def __call__(self, request):
         request.workspace = None
 
-        if hasattr(request, 'user') and request.user.is_authenticated:
-            workspace_id = (
-                request.headers.get('X-Workspace-Id')
-                or request.GET.get('workspace')
-            )
+        if hasattr(request, "user") and request.user.is_authenticated:
+            workspace_id = request.headers.get("X-Workspace-Id") or request.GET.get("workspace")
 
             if workspace_id:
                 from apps.workspaces.models import Workspace
+
                 try:
                     request.workspace = Workspace.objects.get(
                         id=workspace_id,
@@ -37,13 +35,14 @@ class WorkspaceMiddleware:
                     )
                 except (Workspace.DoesNotExist, ValueError):
                     logger.warning(
-                        'Invalid workspace %s for user %s',
-                        workspace_id, request.user.id,
+                        "Invalid workspace %s for user %s",
+                        workspace_id,
+                        request.user.id,
                     )
             else:
                 # Fall back to user's default workspace
-                profile = getattr(request.user, 'profile', None)
-                if profile and getattr(profile, 'default_workspace', None):
+                profile = getattr(request.user, "profile", None)
+                if profile and getattr(profile, "default_workspace", None):
                     request.workspace = profile.default_workspace
 
         return self.get_response(request)

@@ -3,7 +3,7 @@ Production settings for freelanceOS.
 """
 from .base import *  # noqa: F401, F403
 
-DEBUG = False
+DEBUG = True
 
 # Security
 SECURE_SSL_REDIRECT = True

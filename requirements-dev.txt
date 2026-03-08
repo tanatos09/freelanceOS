@@ -17,6 +17,7 @@ Faker>=19.2
 # Linting & formatting
 flake8>=7.0
 black>=24.0
+ruff>=0.4
 isort>=5.13
 
 # Debugging

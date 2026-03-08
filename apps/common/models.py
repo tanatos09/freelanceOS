@@ -11,13 +11,14 @@ from django.utils import timezone
 
 class BaseModel(models.Model):
     """Abstract base model with UUID primary key and timestamps."""
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         abstract = True
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
 
 class SoftDeleteQuerySet(models.QuerySet):
@@ -59,6 +60,7 @@ class SoftDeleteModel(BaseModel):
     - `hard_delete()` performs permanent deletion
     - `restore()` reverses a soft delete
     """
+
     deleted_at = models.DateTimeField(null=True, blank=True, db_index=True)
 
     objects = SoftDeleteManager()
@@ -69,14 +71,14 @@ class SoftDeleteModel(BaseModel):
 
     def delete(self, using=None, keep_parents=False):
         self.deleted_at = timezone.now()
-        self.save(update_fields=['deleted_at', 'updated_at'])
+        self.save(update_fields=["deleted_at", "updated_at"])
 
     def hard_delete(self, using=None, keep_parents=False):
         super().delete(using=using, keep_parents=keep_parents)
 
     def restore(self):
         self.deleted_at = None
-        self.save(update_fields=['deleted_at', 'updated_at'])
+        self.save(update_fields=["deleted_at", "updated_at"])
 
     @property
     def is_deleted(self):

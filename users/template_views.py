@@ -7,20 +7,20 @@ from django.shortcuts import render
 
 
 def login_page(request):
-    return render(request, 'auth/login.html')
+    return render(request, "auth/login.html")
 
 
 def register_page(request):
-    return render(request, 'auth/register.html')
+    return render(request, "auth/register.html")
 
 
 def dashboard_page(request):
-    return render(request, 'auth/dashboard.html')
+    return render(request, "auth/dashboard.html")
 
 
 def clients_page(request):
-    return render(request, 'dashboard/clients.html')
+    return render(request, "dashboard/clients.html")
 
 
 def projects_page(request):
-    return render(request, 'dashboard/projects.html')
+    return render(request, "dashboard/projects.html")

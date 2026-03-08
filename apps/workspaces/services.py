@@ -7,7 +7,6 @@ from .models import Workspace, WorkspaceMembership
 
 
 class WorkspaceService:
-
     @staticmethod
     def create_workspace(owner, name, slug=None):
         """Create a new workspace and add owner as member."""
@@ -18,7 +17,7 @@ class WorkspaceService:
         base_slug = slug
         counter = 1
         while Workspace.objects.filter(slug=slug).exists():
-            slug = f'{base_slug}-{counter}'
+            slug = f"{base_slug}-{counter}"
             counter += 1
 
         workspace = Workspace.objects.create(
@@ -29,7 +28,7 @@ class WorkspaceService:
         WorkspaceMembership.objects.create(
             workspace=workspace,
             user=owner,
-            role='owner',
+            role="owner",
         )
         return workspace
 
@@ -47,19 +46,19 @@ class WorkspaceService:
         try:
             return Workspace.objects.get(id=workspace_id, is_active=True)
         except Workspace.DoesNotExist:
-            raise NotFoundError('Workspace nenalezen.')
+            raise NotFoundError("Workspace nenalezen.")
 
     @staticmethod
-    def add_member(workspace, user, role='member'):
+    def add_member(workspace, user, role="member"):
         """Add a user to a workspace."""
         membership, created = WorkspaceMembership.objects.get_or_create(
             workspace=workspace,
             user=user,
-            defaults={'role': role},
+            defaults={"role": role},
         )
         if not created:
             if membership.is_active:
-                raise BusinessError('Uživatel je již členem tohoto workspace.')
+                raise BusinessError("Uživatel je již členem tohoto workspace.")
             membership.is_active = True
             membership.role = role
             membership.save()
@@ -70,13 +69,14 @@ class WorkspaceService:
         """Remove a user from a workspace (soft)."""
         try:
             membership = WorkspaceMembership.objects.get(
-                workspace=workspace, user=user,
+                workspace=workspace,
+                user=user,
             )
         except WorkspaceMembership.DoesNotExist:
-            raise NotFoundError('Členství nenalezeno.')
+            raise NotFoundError("Členství nenalezeno.")
 
-        if membership.role == 'owner':
-            raise BusinessError('Nelze odebrat vlastníka workspace.')
+        if membership.role == "owner":
+            raise BusinessError("Nelze odebrat vlastníka workspace.")
 
         membership.is_active = False
         membership.save()
@@ -86,13 +86,14 @@ class WorkspaceService:
         """Change a user's role in a workspace."""
         try:
             membership = WorkspaceMembership.objects.get(
-                workspace=workspace, user=user,
+                workspace=workspace,
+                user=user,
             )
         except WorkspaceMembership.DoesNotExist:
-            raise NotFoundError('Členství nenalezeno.')
+            raise NotFoundError("Členství nenalezeno.")
 
-        if membership.role == 'owner' and new_role != 'owner':
-            raise BusinessError('Nelze změnit roli vlastníka workspace.')
+        if membership.role == "owner" and new_role != "owner":
+            raise BusinessError("Nelze změnit roli vlastníka workspace.")
 
         membership.role = new_role
         membership.save()

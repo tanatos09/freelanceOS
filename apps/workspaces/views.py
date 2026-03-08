@@ -2,19 +2,23 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from apps.common.permissions import IsWorkspaceAdmin, IsWorkspaceOwner
-from .serializers import WorkspaceSerializer, WorkspaceCreateSerializer, WorkspaceMembershipSerializer
+from apps.common.permissions import IsWorkspaceAdmin
+from .serializers import (
+    WorkspaceSerializer,
+    WorkspaceCreateSerializer,
+    WorkspaceMembershipSerializer,
+)
 from .services import WorkspaceService
 
 
-@api_view(['GET', 'POST'])
+@api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
 def workspace_list(request):
     """
     GET  /api/v1/workspaces/    — List user's workspaces
     POST /api/v1/workspaces/    — Create a new workspace
     """
-    if request.method == 'GET':
+    if request.method == "GET":
         workspaces = WorkspaceService.get_user_workspaces(request.user)
         serializer = WorkspaceSerializer(workspaces, many=True)
         return Response(serializer.data)
@@ -31,7 +35,7 @@ def workspace_list(request):
     )
 
 
-@api_view(['GET', 'PUT'])
+@api_view(["GET", "PUT"])
 @permission_classes([IsAuthenticated])
 def workspace_detail(request, pk):
     """
@@ -40,13 +44,13 @@ def workspace_detail(request, pk):
     """
     workspace = WorkspaceService.get_workspace(pk)
 
-    if request.method == 'GET':
+    if request.method == "GET":
         return Response(WorkspaceSerializer(workspace).data)
 
     # Only admin/owner can update
     if not IsWorkspaceAdmin().has_permission(request, None):
         return Response(
-            {'detail': 'Nemáte oprávnění.'},
+            {"detail": "Nemáte oprávnění."},
             status=status.HTTP_403_FORBIDDEN,
         )
     serializer = WorkspaceCreateSerializer(workspace, data=request.data, partial=True)
@@ -55,7 +59,7 @@ def workspace_detail(request, pk):
     return Response(WorkspaceSerializer(workspace).data)
 
 
-@api_view(['GET', 'POST'])
+@api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
 def workspace_members(request, pk):
     """
@@ -64,8 +68,8 @@ def workspace_members(request, pk):
     """
     workspace = WorkspaceService.get_workspace(pk)
 
-    if request.method == 'GET':
-        memberships = workspace.memberships.filter(is_active=True).select_related('user')
+    if request.method == "GET":
+        memberships = workspace.memberships.filter(is_active=True).select_related("user")
         serializer = WorkspaceMembershipSerializer(memberships, many=True)
         return Response(serializer.data)
 
@@ -73,8 +77,8 @@ def workspace_members(request, pk):
     serializer.is_valid(raise_exception=True)
     membership = WorkspaceService.add_member(
         workspace=workspace,
-        user=serializer.validated_data['user'],
-        role=serializer.validated_data.get('role', 'member'),
+        user=serializer.validated_data["user"],
+        role=serializer.validated_data.get("role", "member"),
     )
     return Response(
         WorkspaceMembershipSerializer(membership).data,

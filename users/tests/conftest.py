@@ -14,9 +14,9 @@ User = get_user_model()
 def user_data():
     """Vrátí validní data pro vytvoření uživatele."""
     return {
-        'email': 'newuser@example.com',
-        'password': 'securepass123',
-        'password2': 'securepass123'
+        "email": "newuser@example.com",
+        "password": "securepass123",
+        "password2": "securepass123",
     }
 
 
@@ -29,10 +29,7 @@ def registration_data(user_data):
 @pytest.fixture
 def inactive_user(db):
     """Vytvoří neaktivního uživatele."""
-    user = User.objects.create_user(
-        email='inactive@example.com',
-        password='testpass123'
-    )
+    user = User.objects.create_user(email="inactive@example.com", password="testpass123")
     user.is_active = False
     user.save()
     return user
