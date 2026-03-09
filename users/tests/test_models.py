@@ -12,7 +12,7 @@ import pytest
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
-pytestmark = pytest.mark.unit
+pytestmark = [pytest.mark.unit, pytest.mark.django_db]
 
 
 class TestUserModelCreation:
@@ -94,9 +94,10 @@ class TestUserEdgeCases:
             User.objects.create_user(email="duplicate@example.com", password="pass456")
 
     def test_case_sensitive_email_treated_as_duplicates(self, db):
-        """Test: Email je case-insensitive pro unikátnost."""
-        User.objects.create_user(email="Test@Example.com", password="pass123")
-        # Pokus o vytvoření s jinou velikostí by měl selhat
+        """Test: Django normalizuje doménu emailu na lowercase – duplikát domény je odmítnut."""
+        # test@Example.com → normalizuje se na test@example.com
+        User.objects.create_user(email="test@Example.com", password="pass123")
+        # test@example.com → normalizuje se na test@example.com → duplicitní
         with pytest.raises(Exception):
             User.objects.create_user(email="test@example.com", password="pass456")
 

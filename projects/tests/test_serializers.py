@@ -13,7 +13,7 @@ from projects.serializers import (
     ProjectListSerializer,
 )
 
-pytestmark = pytest.mark.unit
+pytestmark = [pytest.mark.unit, pytest.mark.django_db]
 
 
 class TestProjectListSerializer:

@@ -13,7 +13,7 @@ import pytest
 from rest_framework import status
 from rest_framework.test import APIClient
 
-pytestmark = pytest.mark.integration
+pytestmark = [pytest.mark.integration, pytest.mark.django_db]
 
 
 class TestAuthRegisterEndpoint:
@@ -287,7 +287,7 @@ class TestTokenRefreshEndpoint:
 class TestAuthIntegrationFlows:
     """Integrace: Kompletní toky a scénáře."""
 
-    def test_complete_auth_flow(self, api_client):
+    def test_complete_auth_flow(self, api_client, db):
         """Test: Úplný tok - registrace → přihlášení → odhlášení."""
         # 1. Registrace
         register_data = {

@@ -1,8 +1,5 @@
 """
 Globální pytest fixtures pro všechny testy.
-
-Aby se fixtures načetly, musí být tento soubor v root/tests/ složce.
-Pytest jej automaticky discover a načte.
 """
 
 import pytest
@@ -22,23 +19,6 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "integration: označuje integrační testy (API endpoint)")
     config.addinivalue_line("markers", "edge_cases: označuje testy edge cases")
     config.addinivalue_line("markers", "slow: označuje pomalé testy")
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# DATABASE CONFIGURATION
-# ─────────────────────────────────────────────────────────────────────────────
-
-
-@pytest.fixture(scope="session")
-def django_db_setup():
-    """Nastaví testovací databázi."""
-    pass  # Django testů automaticky vytváří testovací DB
-
-
-@pytest.fixture
-def db():
-    """Ensure each test uses the database."""
-    pass
 
 
 # ─────────────────────────────────────────────────────────────────────────────

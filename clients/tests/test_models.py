@@ -13,7 +13,7 @@ from django.db import IntegrityError
 
 from clients.models import Client
 
-pytestmark = pytest.mark.unit
+pytestmark = [pytest.mark.unit, pytest.mark.django_db]
 
 
 class TestClientModelCreation:
@@ -34,9 +34,12 @@ class TestClientModelCreation:
         assert client.user == user
 
     def test_create_client_required_fields(self, user):
-        """Test: Vyžadovaná pole jsou: user, name, email."""
-        with pytest.raises(IntegrityError):
-            Client.objects.create(user=user, email="test@example.com")
+        """Test: Pole name je povinné (validace na úrovni modelu)."""
+        from django.core.exceptions import ValidationError
+
+        client = Client(user=user, email="test@example.com")  # name is empty string by default
+        with pytest.raises(ValidationError):
+            client.full_clean()
 
     def test_create_client_optional_fields(self, user):
         """Test: Pole phone, company, notes jsou volitelná."""

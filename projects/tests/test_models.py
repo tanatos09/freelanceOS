@@ -15,7 +15,7 @@ from django.utils import timezone
 
 from projects.models import Project
 
-pytestmark = pytest.mark.unit
+pytestmark = [pytest.mark.unit, pytest.mark.django_db]
 
 
 class TestProjectModelCreation:
@@ -62,11 +62,12 @@ class TestProjectStatus:
             assert project.status == status
 
     def test_invalid_status_rejected(self, user, client_obj):
-        """Test: Neplatný status je odmítnut."""
-        with pytest.raises(Exception):  # Integrity error or validation error
-            Project.objects.create(
-                user=user, client=client_obj, name="Test", status="invalid_status"
-            )
+        """Test: Neplatný status je odmítnut na úrovni Django model validace."""
+        from django.core.exceptions import ValidationError
+
+        project = Project(user=user, client=client_obj, name="Test", status="invalid_status")
+        with pytest.raises(ValidationError):
+            project.full_clean()
 
 
 class TestProjectModelMethods:

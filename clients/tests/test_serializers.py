@@ -10,7 +10,7 @@ from clients.serializers import (
     ClientListSerializer,
 )
 
-pytestmark = pytest.mark.unit
+pytestmark = [pytest.mark.unit, pytest.mark.django_db]
 
 
 class TestClientListSerializer:

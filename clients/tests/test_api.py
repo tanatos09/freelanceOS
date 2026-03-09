@@ -13,7 +13,7 @@ Pokrývá:
 import pytest
 from rest_framework import status
 
-pytestmark = pytest.mark.integration
+pytestmark = [pytest.mark.integration, pytest.mark.django_db]
 
 
 class TestClientsListEndpoint:
@@ -281,5 +281,5 @@ class TestClientStatsEndpoint:
 
         response = auth_client.get(f"/api/v1/clients/{client_obj.id}/stats/")
         assert response.status_code == status.HTTP_200_OK
-        assert response.data["total_earnings"] == 3000
+        assert float(response.data["total_earnings"]) == 3000
         assert response.data["project_count"] == 2

@@ -1,3 +1,0 @@
-"""
-Testy pro aplikaci projects.
-"""

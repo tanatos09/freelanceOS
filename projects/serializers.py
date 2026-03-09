@@ -132,8 +132,11 @@ class ProjectCreateUpdateSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         """Prověř logiku datumů."""
-        start_date = data.get("start_date") or self.instance.start_date if self.instance else None
-        end_date = data.get("end_date") or self.instance.end_date if self.instance else None
+        start_date = data.get("start_date")
+        end_date = data.get("end_date")
+        if self.instance:
+            start_date = start_date or self.instance.start_date
+            end_date = end_date or self.instance.end_date
 
         if start_date and end_date and start_date > end_date:
             raise serializers.ValidationError("Datum začátku musí být před deadline.")

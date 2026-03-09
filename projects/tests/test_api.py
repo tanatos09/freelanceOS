@@ -16,7 +16,7 @@ import pytest
 from django.utils import timezone
 from rest_framework import status
 
-pytestmark = pytest.mark.integration
+pytestmark = [pytest.mark.integration, pytest.mark.django_db]
 
 
 class TestProjectsListEndpoint:
@@ -142,7 +142,7 @@ class TestProjectsCreateEndpoint:
         data = {"name": "Minimal Project", "client": client_obj.id}
         response = auth_client.post("/api/v1/projects/", data, format="json")
         assert response.status_code == status.HTTP_201_CREATED
-        assert response.data["budget"] == 0
+        assert response.data["budget"] == "0.00"
         assert response.data["description"] == ""
 
 
@@ -263,7 +263,7 @@ class TestProjectEdgeCasesIntegration:
         data = {"name": "Expensive Project", "client": client_obj.id, "budget": 9999999.99}
         response = auth_client.post("/api/v1/projects/", data, format="json")
         assert response.status_code == status.HTTP_201_CREATED
-        assert response.data["budget"] == 9999999.99
+        assert response.data["budget"] == "9999999.99"
 
     def test_project_with_long_description(self, auth_client, client_obj):
         """Test: Dlouhý popis."""
