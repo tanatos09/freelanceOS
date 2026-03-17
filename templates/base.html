@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="cs">
+{% load static %}
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -493,10 +494,11 @@
 <body>
   {% block body %}{% endblock %}
 
-  <script src="/static/js/api.js"></script>
-  <script src="/static/js/app.js"></script>
-  <script src="/static/js/clients.js"></script>
-  <script src="/static/js/projects.js"></script>
+  <script src="{% static 'js/api.js' %}"></script>
+  <script src="{% static 'js/app.js' %}"></script>
+  <script src="{% static 'js/clients.js' %}"></script>
+  <script src="{% static 'js/projects.js' %}"></script>
+  <script src="{% static 'js/timer.js' %}"></script>
   {% block extra_scripts %}{% endblock %}
 </body>
 </html>

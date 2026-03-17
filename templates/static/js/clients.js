@@ -45,7 +45,7 @@ class ClientsManager {
       const tbody = document.getElementById('clientsTbody');
       tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--muted);">Načítám...</td></tr>';
 
-      this.clients = await api.clients.list(this.searchQuery);
+      this.clients = await window.api.clients.list(this.searchQuery);
       this.renderTable();
     } catch (err) {
       console.error('Failed to load clients:', err);
@@ -120,11 +120,11 @@ class ClientsManager {
 
       if (this.editingId) {
         // Update
-        await api.clients.update(this.editingId, data);
+        await window.api.clients.update(this.editingId, data);
         UIManager.success('Klient upraven');
       } else {
         // Create
-        await api.clients.create(data);
+        await window.api.clients.create(data);
         UIManager.success('Klient přidán');
       }
 
@@ -151,7 +151,7 @@ class ClientsManager {
     }
 
     try {
-      await api.clients.delete(clientId);
+      await window.api.clients.delete(clientId);
       UIManager.success('Klient smazán');
       await this.loadClients();
     } catch (err) {

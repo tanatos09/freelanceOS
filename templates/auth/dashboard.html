@@ -9,6 +9,7 @@
     <li><a href="/accounts/dashboard/" data-page="dashboard">Dashboard</a></li>
     <li><a href="/accounts/clients/" data-page="clients">Klienti</a></li>
     <li><a href="/accounts/projects/" data-page="projects">Projekty</a></li>
+    <li><a href="/accounts/timer/" data-page="timer">Timer</a></li>
   </ul>
   <div class="navbar-right">
     <span id="userEmail" style="color: var(--muted); font-size: 0.9rem;">…</span>
@@ -21,6 +22,7 @@
   <div class="page-title">Dashboard</div>
   <div class="page-sub" id="greeting">Vítejte zpět!</div>
 
+  <!-- Stats cards -->
   <div class="cards">
     <div class="card">
       <div class="card-label">Aktivní projekty</div>
@@ -40,43 +42,94 @@
     </div>
   </div>
 
-  <div style="margin-top: 3rem;">
+  <!-- Timer status widget -->
+  <div id="timerWidget" style="
+    margin-top: 2rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.4rem 1.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  ">
+    <div id="timerWidgetRunning" style="display: none; align-items: center; gap: 1rem; flex-wrap: wrap;">
+      <span style="font-size: 1.4rem;">⏱</span>
+      <div>
+        <div style="font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em;">Timer běží</div>
+        <div id="timerWidgetProject" style="font-weight: 600; color: var(--accent);"></div>
+      </div>
+    </div>
+    <div id="timerWidgetIdle" style="display: flex; align-items: center; gap: 1rem;">
+      <span style="font-size: 1.4rem; opacity: 0.4;">⏱</span>
+      <div style="color: var(--muted); font-size: 0.9rem;">Timer není spuštěn</div>
+    </div>
+    <a href="/accounts/timer/" class="btn-primary" style="white-space: nowrap;">
+      Přejít na timer →
+    </a>
+  </div>
+
+  <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
     <a href="/accounts/clients/" class="btn-primary">Spravovat klienty</a>
-    <a href="/accounts/projects/" class="btn-primary" style="margin-left: 1rem;">Spravovat projekty</a>
+    <a href="/accounts/projects/" class="btn-primary">Spravovat projekty</a>
+    <a href="/accounts/timer/" class="btn-primary">Spustit timer</a>
   </div>
 </main>
 
+{% endblock %}
+
+{% block extra_scripts %}
 <script>
   UIManager.setActiveNav('dashboard');
 
-  async function loadDashboard() {
+  (async function loadDashboard() {
     try {
-      // Load clients count
-      const clientsRes = await api.clients.list();
-      document.getElementById('clientsCount').textContent = clientsRes.length || 0;
-
-      // Load projects stats
-      const projectsRes = await api.projects.list();
-      document.getElementById('projectsCount').textContent = projectsRes.length || 0;
-
-      const activeProjects = projectsRes.filter(p => p.status === 'active').length;
-      document.getElementById('activeProjectsCount').textContent = activeProjects || 0;
-
-      const overdueProjects = projectsRes.filter(p => p.is_overdue).length;
-      document.getElementById('overdueCount').textContent = overdueProjects || 0;
+      // Stats from dedicated endpoint
+      const stats = await window.api.dashboard.stats();
+      if (stats) {
+        document.getElementById('clientsCount').textContent = stats.clients_count ?? 0;
+        document.getElementById('projectsCount').textContent = stats.projects_count ?? 0;
+        document.getElementById('activeProjectsCount').textContent = stats.active_projects_count ?? 0;
+        document.getElementById('overdueCount').textContent = stats.overdue_projects_count ?? 0;
+      } else {
+        document.getElementById('clientsCount').textContent = 0;
+        document.getElementById('projectsCount').textContent = 0;
+        document.getElementById('activeProjectsCount').textContent = 0;
+        document.getElementById('overdueCount').textContent = 0;
+      }
     } catch (err) {
-      console.error('Failed to load dashboard:', err);
-      UIManager.error('Chyba při načítání dashboardu');
+      console.error('Failed to load stats:', err);
+      document.getElementById('clientsCount').textContent = 0;
+      document.getElementById('projectsCount').textContent = 0;
+      document.getElementById('activeProjectsCount').textContent = 0;
+      document.getElementById('overdueCount').textContent = 0;
     }
-  }
 
-  // Load user and dashboard data
-  const user = await UIManager.loadUser();
-  if (user) {
-    document.getElementById('userEmail').textContent = user.email;
-    document.getElementById('greeting').textContent = `Vítejte zpět, ${user.email}!`;
-  }
+    try {
+      // Timer status
+      const running = await window.api.workcommits.running();
+      const widgetRunning = document.getElementById('timerWidgetRunning');
+      const widgetIdle = document.getElementById('timerWidgetIdle');
+      if (running) {
+        widgetRunning.style.display = 'flex';
+        widgetIdle.style.display = 'none';
+        document.getElementById('timerWidgetProject').textContent = running.project_name || '';
+      } else {
+        widgetRunning.style.display = 'none';
+        widgetIdle.style.display = 'flex';
+      }
+    } catch (err) {
+      console.error('Failed to load timer status:', err);
+    }
 
-  loadDashboard();
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || 'null');
+      if (user && user.email) {
+        document.getElementById('greeting').textContent = `Vítejte zpět, ${user.email}!`;
+      }
+    } catch (_) {}
+  })();
 </script>
 {% endblock %}

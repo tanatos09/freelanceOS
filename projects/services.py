@@ -12,12 +12,12 @@ class ProjectService:
         Vrátí všechny projekty uživatele s podporou filtrů.
 
         If workspace is provided, filters by workspace (multi-tenant).
-        Otherwise, falls back to user-based filtering.
+        Always scoped to the authenticated user.
         """
+        projects = Project.objects.filter(user=user)
+
         if workspace:
-            projects = Project.objects.filter(workspace=workspace)
-        else:
-            projects = Project.objects.filter(user=user)
+            projects = projects.filter(workspace=workspace)
 
         if not filters:
             return projects

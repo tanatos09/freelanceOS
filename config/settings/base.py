@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     "users",
     "clients",
     "projects",
+    "workcommits",
 ]
 
 MIDDLEWARE = [
@@ -126,6 +127,10 @@ REST_FRAMEWORK = {
         "anon": "100/hour",
         "user": "1000/hour",
     },
+    "DATE_FORMAT": "iso-8601",
+    "DATE_INPUT_FORMATS": ["iso-8601", "%Y-%m-%d"],
+    "DATETIME_FORMAT": "iso-8601",
+    "DATETIME_INPUT_FORMATS": ["iso-8601"],
 }
 
 # Simple JWT

@@ -11,12 +11,12 @@ class ClientService:
         """Vrátí všechny klienty uživatele (s vyhledáváním).
 
         If workspace is provided, filters by workspace (multi-tenant).
-        Otherwise, falls back to user-based filtering (backward compat).
+        Always scoped to the authenticated user.
         """
+        clients = Client.objects.filter(user=user)
+
         if workspace:
-            clients = Client.objects.filter(workspace=workspace)
-        else:
-            clients = Client.objects.filter(user=user)
+            clients = clients.filter(workspace=workspace)
 
         if search_query:
             clients = clients.filter(

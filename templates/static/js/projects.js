@@ -65,7 +65,7 @@ class ProjectsManager {
 
   async loadClients() {
     try {
-      this.clients = await api.clients.list();
+      this.clients = await window.api.clients.list();
       
       // Populate client dropdowns
       const clientSelect = document.getElementById('projectClient');
@@ -86,7 +86,7 @@ class ProjectsManager {
       tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--muted);">Načítám...</td></tr>';
 
       // Load all projects first
-      this.projects = await api.projects.list();
+      this.projects = await window.api.projects.list();
       this.renderTable();
     } catch (err) {
       console.error('Failed to load projects:', err);
@@ -156,7 +156,7 @@ class ProjectsManager {
           <td>${UIManager.statusBadge(project.status)}</td>
           <td style="color: var(--muted);">
             ${UIManager.formatDate(project.end_date)}
-            ${project.days_until_deadline !== null ? `<div style="font-size: 0.8rem;">${project.days_until_deadline} dní</div>` : ''}
+            ${project.days_until_deadline != null ? `<div style="font-size: 0.8rem;">${project.days_until_deadline} dní</div>` : ''}
           </td>
           <td>${UIManager.formatCurrency(project.budget)}</td>
           <td style="text-align: right;">
@@ -173,28 +173,33 @@ class ProjectsManager {
   openAddModal() {
     this.editingId = null;
     document.getElementById('modalTitle').textContent = 'Nový projekt';
-    document.getElementById('projectStatus').value = 'active';
     FormHelper.clear(document.getElementById('projectForm'));
+    document.getElementById('projectStatus').value = 'active';
     UIManager.modal.open('projectModal');
   }
 
-  openEditModal(projectId) {
-    const project = this.projects.find(p => p.id === projectId);
-    if (!project) return;
-
+  async openEditModal(projectId) {
     this.editingId = projectId;
     document.getElementById('modalTitle').textContent = 'Upravit projekt';
-    FormHelper.populate(document.getElementById('projectForm'), {
-      name: project.name,
-      client: project.client,
-      description: project.description,
-      status: project.status,
-      budget: project.budget,
-      estimated_hours: project.estimated_hours,
-      start_date: project.start_date,
-      end_date: project.end_date,
-    });
+    FormHelper.clear(document.getElementById('projectForm'));
     UIManager.modal.open('projectModal');
+
+    try {
+      const project = await window.api.projects.get(projectId);
+      FormHelper.populate(document.getElementById('projectForm'), {
+        name: project.name,
+        client: project.client,
+        description: project.description || '',
+        status: project.status,
+        budget: project.budget,
+        estimated_hours: project.estimated_hours,
+        start_date: project.start_date || '',
+        end_date: project.end_date || '',
+      });
+    } catch (err) {
+      UIManager.error('Chyba při načítání projektu');
+      UIManager.modal.close('projectModal');
+    }
   }
 
   async handleFormSubmit() {
@@ -206,16 +211,35 @@ class ProjectsManager {
     data.estimated_hours = data.estimated_hours ? parseFloat(data.estimated_hours) : 0;
     data.client = parseInt(data.client);
 
+    // DRF DateField rejects empty strings – send null instead
+    // Ensure dates are always in YYYY-MM-DD format for DRF
+    data.start_date = data.start_date ? data.start_date.substring(0, 10) : null;
+    data.end_date = data.end_date ? data.end_date.substring(0, 10) : null;
+
+    // Frontend date validation
+    if (data.start_date && data.end_date && data.start_date > data.end_date) {
+      UIManager.error('Datum začátku musí být před deadline.');
+      const endDateInput = form.elements['end_date'];
+      if (endDateInput) {
+        const errEl = document.createElement('div');
+        errEl.className = 'form-error';
+        errEl.textContent = 'Deadline musí být po datu začátku.';
+        form.querySelectorAll('.form-error').forEach(e => e.remove());
+        endDateInput.parentNode.appendChild(errEl);
+      }
+      return;
+    }
+
     try {
       FormHelper.setLoading(form, true);
 
       if (this.editingId) {
         // Update
-        await api.projects.update(this.editingId, data);
+        await window.api.projects.update(this.editingId, data);
         UIManager.success('Projekt upraven');
       } else {
         // Create
-        await api.projects.create(data);
+        await window.api.projects.create(data);
         UIManager.success('Projekt vytvořen');
       }
 
@@ -242,7 +266,7 @@ class ProjectsManager {
     }
 
     try {
-      await api.projects.delete(projectId);
+      await window.api.projects.delete(projectId);
       UIManager.success('Projekt smazán');
       await this.loadProjects();
     } catch (err) {

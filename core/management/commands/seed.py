@@ -4,7 +4,9 @@ from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from core.models import Client, Project, WorkCommit
+from clients.models import Client
+from projects.models import Project
+from workcommits.models import WorkCommit
 
 User = get_user_model()
 
@@ -51,30 +53,30 @@ class Command(BaseCommand):
             {
                 "name": "Redesign webu",
                 "client": "Web Novák",
-                "rate": 500,
-                "status": "in_progress",
-                "deadline": timezone.now().date() + timedelta(days=10),
+                "budget": 50000,
+                "status": "active",
+                "end_date": timezone.now().date() + timedelta(days=10),
             },
             {
                 "name": "Galerie fotek",
                 "client": "Fotogalerie Svoboda",
-                "rate": 400,
-                "status": "new",
-                "deadline": timezone.now().date() + timedelta(days=7),
+                "budget": 30000,
+                "status": "draft",
+                "end_date": timezone.now().date() + timedelta(days=7),
             },
             {
                 "name": "Nový e-shop",
                 "client": "E-shop Kolář",
-                "rate": 600,
-                "status": "in_progress",
-                "deadline": timezone.now().date() - timedelta(days=2),
+                "budget": 80000,
+                "status": "active",
+                "end_date": timezone.now().date() - timedelta(days=2),
             },  # Overdue!
             {
                 "name": "Opravy CSS",
                 "client": "Web Novák",
-                "rate": 300,
-                "status": "done",
-                "deadline": timezone.now().date() - timedelta(days=5),
+                "budget": 10000,
+                "status": "completed",
+                "end_date": timezone.now().date() - timedelta(days=5),
             },
         ]
 
@@ -85,9 +87,9 @@ class Command(BaseCommand):
                 name=proj_data["name"],
                 defaults={
                     "client": clients[proj_data["client"]],
-                    "rate": proj_data["rate"],
+                    "budget": proj_data["budget"],
                     "status": proj_data["status"],
-                    "deadline": proj_data["deadline"],
+                    "end_date": proj_data["end_date"],
                 },
             )
             projects[project.name] = project

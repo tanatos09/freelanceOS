@@ -25,3 +25,7 @@ def clients_page(request):
 
 def projects_page(request):
     return render(request, "dashboard/projects.html")
+
+
+def timer_page(request):
+    return render(request, "dashboard/timer.html")

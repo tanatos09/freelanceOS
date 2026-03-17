@@ -8,6 +8,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
 
     client_name = serializers.CharField(source="client.name", read_only=True)
     is_overdue = serializers.SerializerMethodField()
+    days_until_deadline = serializers.SerializerMethodField()
     progress = serializers.SerializerMethodField()
     status_display = serializers.CharField(source="get_status_display", read_only=True)
 
@@ -22,15 +23,20 @@ class ProjectListSerializer(serializers.ModelSerializer):
             "status_display",
             "budget",
             "estimated_hours",
+            "start_date",
             "end_date",
             "is_overdue",
+            "days_until_deadline",
             "progress",
             "created_at",
         )
-        read_only_fields = ("client_name", "is_overdue", "progress", "created_at")
+        read_only_fields = ("client_name", "is_overdue", "days_until_deadline", "progress", "created_at")
 
     def get_is_overdue(self, obj):
         return obj.is_overdue()
+
+    def get_days_until_deadline(self, obj):
+        return obj.days_until_deadline()
 
     def get_progress(self, obj):
         return obj.progress_percent()
@@ -99,6 +105,10 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
 class ProjectCreateUpdateSerializer(serializers.ModelSerializer):
     """Pro vytváření a editaci projektů."""
 
+    # Explicit declarations so DRF definitely accepts null (cleared date fields)
+    start_date = serializers.DateField(allow_null=True, required=False)
+    end_date = serializers.DateField(allow_null=True, required=False)
+
     class Meta:
         model = Project
         fields = (
@@ -134,10 +144,16 @@ class ProjectCreateUpdateSerializer(serializers.ModelSerializer):
         """Prověř logiku datumů."""
         start_date = data.get("start_date")
         end_date = data.get("end_date")
+
+        # For partial updates: fall back to instance only for fields NOT in the request
         if self.instance:
-            start_date = start_date or self.instance.start_date
-            end_date = end_date or self.instance.end_date
+            if "start_date" not in data:
+                start_date = self.instance.start_date
+            if "end_date" not in data:
+                end_date = self.instance.end_date
 
         if start_date and end_date and start_date > end_date:
-            raise serializers.ValidationError("Datum začátku musí být před deadline.")
+            raise serializers.ValidationError(
+                {"end_date": ["Deadline musí být po datu začátku."]}
+            )
         return data

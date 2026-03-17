@@ -8,6 +8,49 @@ class APIClient {
     this.baseURL = '/api/v1';
     this.accessToken = localStorage.getItem('access_token');
     this.refreshToken = localStorage.getItem('refresh_token');
+
+    // API sub-objects defined in constructor (not class fields) to guarantee
+    // 'this' is fully bound before any arrow function references it.
+    this.clients = {
+      list: (search = '') => {
+        const params = search ? `?search=${encodeURIComponent(search)}` : '';
+        return this.get(`/clients/${params}`);
+      },
+      get: (id) => this.get(`/clients/${id}/`),
+      create: (data) => this.post('/clients/', data),
+      update: (id, data) => this.put(`/clients/${id}/`, data),
+      delete: (id) => this.delete(`/clients/${id}/`),
+      stats: (id) => this.get(`/clients/${id}/stats/`),
+    };
+
+    this.projects = {
+      list: (filters = {}) => {
+        const params = new URLSearchParams(filters).toString();
+        return this.get(`/projects/${params ? '?' + params : ''}`);
+      },
+      get: (id) => this.get(`/projects/${id}/`),
+      create: (data) => this.post('/projects/', data),
+      update: (id, data) => this.put(`/projects/${id}/`, data),
+      delete: (id) => this.delete(`/projects/${id}/`),
+    };
+
+    this.workcommits = {
+      list: (filters = {}) => {
+        const params = new URLSearchParams(filters).toString();
+        return this.get(`/workcommits/${params ? '?' + params : ''}`);
+      },
+      running: () => this.get('/workcommits/running/'),
+      start: (projectId) => this.post('/workcommits/start/', { project: projectId }),
+      commit: (id, description, continueTimer) =>
+        this.post(`/workcommits/${id}/commit/`, { description, continue: continueTimer }),
+      stop: (id, description = '') =>
+        this.post(`/workcommits/${id}/stop/`, { description }),
+      delete: (id) => this.delete(`/workcommits/${id}/`),
+    };
+
+    this.dashboard = {
+      stats: () => this.get('/dashboard/stats/'),
+    };
   }
 
   /**
@@ -147,35 +190,12 @@ class APIClient {
     window.location.href = '/accounts/login/';
   }
 
-  /**
-   * Clients API
-   */
-  clients = {
-    list: (search = '') => {
-      const params = search ? `?search=${encodeURIComponent(search)}` : '';
-      return api.get(`/clients/${params}`);
-    },
-    get: (id) => api.get(`/clients/${id}/`),
-    create: (data) => api.post('/clients/', data),
-    update: (id, data) => api.put(`/clients/${id}/`, data),
-    delete: (id) => api.delete(`/clients/${id}/`),
-    stats: (id) => api.get(`/clients/${id}/stats/`),
-  };
-
-  /**
-   * Projects API
-   */
-  projects = {
-    list: (filters = {}) => {
-      const params = new URLSearchParams(filters).toString();
-      return api.get(`/projects/${params ? '?' + params : ''}`);
-    },
-    get: (id) => api.get(`/projects/${id}/`),
-    create: (data) => api.post('/projects/', data),
-    update: (id, data) => api.put(`/projects/${id}/`, data),
-    delete: (id) => api.delete(`/projects/${id}/`),
-  };
 }
 
 // Create global API client instance
-const api = new APIClient();
+try {
+  window.api = new APIClient();
+} catch (err) {
+  console.error('Failed to create API client:', err);
+  window.api = null;
+}

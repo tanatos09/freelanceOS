@@ -8,6 +8,7 @@ urlpatterns = [
     path("api/v1/auth/", include("users.urls", namespace="users")),
     path("api/v1/clients/", include("clients.urls", namespace="clients")),
     path("api/v1/projects/", include("projects.urls", namespace="projects")),
+    path("api/v1/workcommits/", include("workcommits.urls", namespace="workcommits")),
     path("api/v1/workspaces/", include("apps.workspaces.urls", namespace="workspaces")),
     path("api/v1/", include("core.api_urls", namespace="core")),
     # Jednoduchý frontend (Django templates)

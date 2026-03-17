@@ -1,0 +1,409 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.12.7, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\frank\AppData\Local\Programs\Python\Python312\python.exe
+django: version: 6.0.3, settings: core.settings (from ini)
+rootdir: C:\Users\frank\Desktop\freelanceos
+configfile: pytest.ini (WARNING: ignoring pytest config in pyproject.toml!)
+testpaths: tests, users/tests, clients/tests, projects/tests
+plugins: Faker-40.8.0, cov-7.0.0, django-4.12.0, timeout-2.4.0, xdist-3.8.0
+timeout: 10.0s
+timeout method: thread
+timeout func_only: False
+collecting ... collected 260 items
+
+users/tests/test_api.py::TestAuthRegisterEndpoint::test_register_success PASSED [  0%]
+users/tests/test_api.py::TestAuthRegisterEndpoint::test_register_returns_tokens PASSED [  0%]
+users/tests/test_api.py::TestAuthRegisterEndpoint::test_register_creates_user_profile PASSED [  1%]
+users/tests/test_api.py::TestAuthRegisterEndpoint::test_register_duplicate_email PASSED [  1%]
+users/tests/test_api.py::TestAuthRegisterEndpoint::test_register_password_mismatch PASSED [  1%]
+users/tests/test_api.py::TestAuthRegisterEndpoint::test_register_weak_password PASSED [  2%]
+users/tests/test_api.py::TestAuthRegisterEndpoint::test_register_missing_email PASSED [  2%]
+users/tests/test_api.py::TestAuthRegisterEndpoint::test_register_empty_email PASSED [  3%]
+users/tests/test_api.py::TestAuthLoginEndpoint::test_login_success PASSED [  3%]
+users/tests/test_api.py::TestAuthLoginEndpoint::test_login_returns_correct_user_info PASSED [  3%]
+users/tests/test_api.py::TestAuthLoginEndpoint::test_login_invalid_password PASSED [  4%]
+users/tests/test_api.py::TestAuthLoginEndpoint::test_login_non_existent_user PASSED [  4%]
+users/tests/test_api.py::TestAuthLoginEndpoint::test_login_missing_email PASSED [  5%]
+users/tests/test_api.py::TestAuthLoginEndpoint::test_login_missing_password PASSED [  5%]
+users/tests/test_api.py::TestAuthLoginEndpoint::test_login_case_insensitive_email PASSED [  5%]
+users/tests/test_api.py::TestAuthLoginEndpoint::test_login_inactive_user PASSED [  6%]
+users/tests/test_api.py::TestAuthLogoutEndpoint::test_logout_success PASSED [  6%]
+users/tests/test_api.py::TestAuthLogoutEndpoint::test_logout_missing_refresh_token PASSED [  6%]
+users/tests/test_api.py::TestAuthLogoutEndpoint::test_logout_invalid_token PASSED [  7%]
+users/tests/test_api.py::TestAuthLogoutEndpoint::test_logout_requires_authentication PASSED [  7%]
+users/tests/test_api.py::TestAuthLogoutEndpoint::test_logout_blacklists_token PASSED [  8%]
+users/tests/test_api.py::TestAuthMeEndpoint::test_me_authenticated PASSED [  8%]
+users/tests/test_api.py::TestAuthMeEndpoint::test_me_unauthenticated PASSED [  8%]
+users/tests/test_api.py::TestAuthMeEndpoint::test_me_returns_profile_data PASSED [  9%]
+users/tests/test_api.py::TestAuthChangePasswordEndpoint::test_change_password_success PASSED [  9%]
+users/tests/test_api.py::TestAuthChangePasswordEndpoint::test_change_password_wrong_old_password PASSED [ 10%]
+users/tests/test_api.py::TestAuthChangePasswordEndpoint::test_change_password_weak_new_password PASSED [ 10%]
+users/tests/test_api.py::TestAuthChangePasswordEndpoint::test_change_password_requires_authentication PASSED [ 10%]
+users/tests/test_api.py::TestTokenRefreshEndpoint::test_token_refresh_success PASSED [ 11%]
+users/tests/test_api.py::TestTokenRefreshEndpoint::test_token_refresh_invalid_token PASSED [ 11%]
+users/tests/test_api.py::TestTokenRefreshEndpoint::test_token_refresh_missing_token PASSED [ 11%]
+users/tests/test_api.py::TestAuthIntegrationFlows::test_complete_auth_flow PASSED [ 12%]
+users/tests/test_api.py::TestAuthIntegrationFlows::test_login_change_password_relogin_flow PASSED [ 12%]
+users/tests/test_api.py::TestAuthIntegrationFlows::test_token_refresh_flow PASSED [ 13%]
+users/tests/test_edgecases.py::RaceConditionTests::test_concurrent_registration_api_endpoint PASSED [ 13%]
+users/tests/test_edgecases.py::RaceConditionTests::test_concurrent_registration_same_email_raises_integrity_error PASSED [ 13%]
+users/tests/test_edgecases.py::RefreshTokenExpirationTests::test_expired_refresh_token_cannot_be_refreshed PASSED [ 14%]
+users/tests/test_edgecases.py::RefreshTokenExpirationTests::test_refresh_token_api_with_expired_token PASSED [ 14%]
+users/tests/test_edgecases.py::RefreshTokenExpirationTests::test_refresh_token_lifecycle PASSED [ 15%]
+users/tests/test_edgecases.py::TokenBlacklistTests::test_double_logout_attempt PASSED [ 15%]
+users/tests/test_edgecases.py::TokenBlacklistTests::test_logout_blacklists_token PASSED [ 15%]
+users/tests/test_edgecases.py::EdgeCaseInputTests::test_extremely_long_email PASSED [ 16%]
+users/tests/test_edgecases.py::EdgeCaseInputTests::test_missing_required_fields PASSED [ 16%]
+users/tests/test_edgecases.py::EdgeCaseInputTests::test_password_mismatch PASSED [ 16%]
+users/tests/test_edgecases.py::EdgeCaseInputTests::test_special_characters_in_email PASSED [ 17%]
+users/tests/test_edgecases.py::EdgeCaseInputTests::test_whitespace_only_email PASSED [ 17%]
+users/tests/test_edgecases.py::LoginEdgeCaseTests::test_login_case_insensitive_email PASSED [ 18%]
+users/tests/test_edgecases.py::LoginEdgeCaseTests::test_login_with_inactive_user PASSED [ 18%]
+users/tests/test_edgecases.py::LoginEdgeCaseTests::test_login_with_nonexistent_user PASSED [ 18%]
+users/tests/test_edgecases.py::LoginEdgeCaseTests::test_login_with_wrong_password PASSED [ 19%]
+users/tests/test_legacy.py::UserModelTests::test_create_superuser_enforces_flags PASSED [ 19%]
+users/tests/test_legacy.py::UserModelTests::test_create_superuser_success PASSED [ 20%]
+users/tests/test_legacy.py::UserModelTests::test_create_user_email_normalized PASSED [ 20%]
+users/tests/test_legacy.py::UserModelTests::test_create_user_requires_email PASSED [ 20%]
+users/tests/test_legacy.py::UserModelTests::test_create_user_success PASSED [ 21%]
+users/tests/test_legacy.py::UserModelTests::test_user_str_representation PASSED [ 21%]
+users/tests/test_legacy.py::UserProfileModelTests::test_profile_created_automatically PASSED [ 21%]
+users/tests/test_legacy.py::UserProfileModelTests::test_profile_default_values PASSED [ 22%]
+users/tests/test_legacy.py::UserProfileModelTests::test_profile_str_representation PASSED [ 22%]
+users/tests/test_legacy.py::RegisterSerializerTests::test_duplicate_email PASSED [ 23%]
+users/tests/test_legacy.py::RegisterSerializerTests::test_missing_email PASSED [ 23%]
+users/tests/test_legacy.py::RegisterSerializerTests::test_missing_password PASSED [ 23%]
+users/tests/test_legacy.py::RegisterSerializerTests::test_password_mismatch PASSED [ 24%]
+users/tests/test_legacy.py::RegisterSerializerTests::test_valid_registration_data PASSED [ 24%]
+users/tests/test_legacy.py::RegisterSerializerTests::test_weak_password PASSED [ 25%]
+users/tests/test_legacy.py::UserSerializerTests::test_includes_profile_data PASSED [ 25%]
+users/tests/test_legacy.py::UserSerializerTests::test_serialize_user PASSED [ 25%]
+users/tests/test_legacy.py::ChangePasswordSerializerTests::test_valid_password_change PASSED [ 26%]
+users/tests/test_legacy.py::ChangePasswordSerializerTests::test_weak_new_password PASSED [ 26%]
+users/tests/test_legacy.py::ChangePasswordSerializerTests::test_wrong_old_password PASSED [ 26%]
+users/tests/test_legacy.py::AuthRegisterAPITests::test_register_creates_profile PASSED [ 27%]
+users/tests/test_legacy.py::AuthRegisterAPITests::test_register_duplicate_email PASSED [ 27%]
+users/tests/test_legacy.py::AuthRegisterAPITests::test_register_missing_email PASSED [ 28%]
+users/tests/test_legacy.py::AuthRegisterAPITests::test_register_password_mismatch PASSED [ 28%]
+users/tests/test_legacy.py::AuthRegisterAPITests::test_register_success PASSED [ 28%]
+users/tests/test_legacy.py::AuthRegisterAPITests::test_register_weak_password PASSED [ 29%]
+users/tests/test_legacy.py::AuthLoginAPITests::test_login_case_insensitive PASSED [ 29%]
+users/tests/test_legacy.py::AuthLoginAPITests::test_login_empty_fields PASSED [ 30%]
+users/tests/test_legacy.py::AuthLoginAPITests::test_login_inactive_user PASSED [ 30%]
+users/tests/test_legacy.py::AuthLoginAPITests::test_login_invalid_credentials PASSED [ 30%]
+users/tests/test_legacy.py::AuthLoginAPITests::test_login_missing_email PASSED [ 31%]
+users/tests/test_legacy.py::AuthLoginAPITests::test_login_missing_password PASSED [ 31%]
+users/tests/test_legacy.py::AuthLoginAPITests::test_login_non_existent_user PASSED [ 31%]
+users/tests/test_legacy.py::AuthLoginAPITests::test_login_success PASSED [ 32%]
+users/tests/test_legacy.py::AuthLogoutAPITests::test_logout_blacklists_token PASSED [ 32%]
+users/tests/test_legacy.py::AuthLogoutAPITests::test_logout_invalid_token PASSED [ 33%]
+users/tests/test_legacy.py::AuthLogoutAPITests::test_logout_missing_refresh_token PASSED [ 33%]
+users/tests/test_legacy.py::AuthLogoutAPITests::test_logout_requires_authentication PASSED [ 33%]
+users/tests/test_legacy.py::AuthLogoutAPITests::test_logout_success PASSED [ 34%]
+users/tests/test_legacy.py::AuthMeAPITests::test_me_authenticated PASSED [ 34%]
+users/tests/test_legacy.py::AuthMeAPITests::test_me_returns_profile_data PASSED [ 35%]
+users/tests/test_legacy.py::AuthMeAPITests::test_me_unauthenticated PASSED [ 35%]
+users/tests/test_legacy.py::AuthChangePasswordAPITests::test_change_password_requires_authentication PASSED [ 35%]
+users/tests/test_legacy.py::AuthChangePasswordAPITests::test_change_password_success PASSED [ 36%]
+users/tests/test_legacy.py::AuthChangePasswordAPITests::test_change_password_weak_new_password PASSED [ 36%]
+users/tests/test_legacy.py::AuthChangePasswordAPITests::test_change_password_wrong_old_password PASSED [ 36%]
+users/tests/test_legacy.py::TokenRefreshAPITests::test_token_refresh_invalid_token PASSED [ 37%]
+users/tests/test_legacy.py::TokenRefreshAPITests::test_token_refresh_missing_token PASSED [ 37%]
+users/tests/test_legacy.py::TokenRefreshAPITests::test_token_refresh_success PASSED [ 38%]
+users/tests/test_legacy.py::FullAuthFlowTests::test_complete_auth_flow PASSED [ 38%]
+users/tests/test_legacy.py::FullAuthFlowTests::test_login_then_change_password_flow PASSED [ 38%]
+users/tests/test_models.py::TestUserModelCreation::test_create_user_success PASSED [ 39%]
+users/tests/test_models.py::TestUserModelCreation::test_create_user_requires_email PASSED [ 39%]
+users/tests/test_models.py::TestUserModelCreation::test_email_normalization PASSED [ 40%]
+users/tests/test_models.py::TestUserModelCreation::test_create_superuser_success PASSED [ 40%]
+users/tests/test_models.py::TestUserModelCreation::test_create_superuser_enforces_is_staff PASSED [ 40%]
+users/tests/test_models.py::TestUserModelCreation::test_create_superuser_enforces_is_superuser PASSED [ 41%]
+users/tests/test_models.py::TestUserModelProperties::test_user_str_representation PASSED [ 41%]
+users/tests/test_models.py::TestUserModelProperties::test_user_username_field_is_email PASSED [ 41%]
+users/tests/test_models.py::TestUserModelProperties::test_check_password PASSED [ 42%]
+users/tests/test_models.py::TestUserModelProperties::test_set_password PASSED [ 42%]
+users/tests/test_models.py::TestUserEdgeCases::test_duplicate_email_raises_error PASSED [ 43%]
+users/tests/test_models.py::TestUserEdgeCases::test_case_sensitive_email_treated_as_duplicates PASSED [ 43%]
+users/tests/test_models.py::TestUserProfileAutoCreation::test_profile_created_automatically PASSED [ 43%]
+users/tests/test_models.py::TestUserProfileAutoCreation::test_profile_default_timezone PASSED [ 44%]
+users/tests/test_models.py::TestUserProfileAutoCreation::test_profile_default_locale PASSED [ 44%]
+users/tests/test_models.py::TestUserProfileAutoCreation::test_profile_str_representation PASSED [ 45%]
+users/tests/test_models.py::TestUserProfileAutoCreation::test_profile_timestamps PASSED [ 45%]
+users/tests/test_models.py::TestUserProfileAutoCreation::test_profile_update PASSED [ 45%]
+users/tests/test_models.py::TestUserProfileEdgeCases::test_cannot_create_multiple_profiles PASSED [ 46%]
+users/tests/test_models.py::TestUserProfileEdgeCases::test_profile_deletion_cascades PASSED [ 46%]
+users/tests/test_serializers.py::TestRegisterSerializer::test_valid_registration_data PASSED [ 46%]
+users/tests/test_serializers.py::TestRegisterSerializer::test_password_validation_mismatch PASSED [ 47%]
+users/tests/test_serializers.py::TestRegisterSerializer::test_missing_email PASSED [ 47%]
+users/tests/test_serializers.py::TestRegisterSerializer::test_missing_password PASSED [ 48%]
+users/tests/test_serializers.py::TestRegisterSerializer::test_missing_password_confirm PASSED [ 48%]
+users/tests/test_serializers.py::TestRegisterSerializer::test_weak_password PASSED [ 48%]
+users/tests/test_serializers.py::TestRegisterSerializer::test_duplicate_email PASSED [ 49%]
+users/tests/test_serializers.py::TestRegisterSerializer::test_empty_email PASSED [ 49%]
+users/tests/test_serializers.py::TestUserSerializer::test_serialize_user PASSED [ 50%]
+users/tests/test_serializers.py::TestUserSerializer::test_includes_timezone_from_profile PASSED [ 50%]
+users/tests/test_serializers.py::TestUserSerializer::test_includes_locale_from_profile PASSED [ 50%]
+users/tests/test_serializers.py::TestUserSerializer::test_all_required_fields_present PASSED [ 51%]
+users/tests/test_serializers.py::TestUserSerializer::test_no_sensitive_data_exposed PASSED [ 51%]
+users/tests/test_serializers.py::TestChangePasswordSerializer::test_valid_password_change PASSED [ 51%]
+users/tests/test_serializers.py::TestChangePasswordSerializer::test_wrong_old_password PASSED [ 52%]
+users/tests/test_serializers.py::TestChangePasswordSerializer::test_weak_new_password PASSED [ 52%]
+users/tests/test_serializers.py::TestChangePasswordSerializer::test_missing_old_password PASSED [ 53%]
+users/tests/test_serializers.py::TestChangePasswordSerializer::test_missing_new_password PASSED [ 53%]
+users/tests/test_serializers.py::TestSerializerEdgeCases::test_register_with_special_characters_in_password PASSED [ 53%]
+users/tests/test_serializers.py::TestSerializerEdgeCases::test_register_email_with_plus_addressing PASSED [ 54%]
+clients/tests/test_api.py::TestClientsListEndpoint::test_list_clients_authenticated PASSED [ 54%]
+clients/tests/test_api.py::TestClientsListEndpoint::test_list_clients_unauthenticated PASSED [ 55%]
+clients/tests/test_api.py::TestClientsListEndpoint::test_list_clients_returns_correct_fields PASSED [ 55%]
+clients/tests/test_api.py::TestClientsListEndpoint::test_list_only_own_clients PASSED [ 55%]
+clients/tests/test_api.py::TestClientsListEndpoint::test_list_clients_search_by_name PASSED [ 56%]
+clients/tests/test_api.py::TestClientsListEndpoint::test_list_clients_search_by_email PASSED [ 56%]
+clients/tests/test_api.py::TestClientsListEndpoint::test_list_clients_search_by_company PASSED [ 56%]
+clients/tests/test_api.py::TestClientsCreateEndpoint::test_create_client_success PASSED [ 57%]
+clients/tests/test_api.py::TestClientsCreateEndpoint::test_create_client_unauthenticated PASSED [ 57%]
+clients/tests/test_api.py::TestClientsCreateEndpoint::test_create_client_missing_name PASSED [ 58%]
+clients/tests/test_api.py::TestClientsCreateEndpoint::test_create_client_missing_email PASSED [ 58%]
+clients/tests/test_api.py::TestClientsCreateEndpoint::test_create_client_duplicate_email PASSED [ 58%]
+clients/tests/test_api.py::TestClientsCreateEndpoint::test_create_client_without_optional_fields PASSED [ 59%]
+clients/tests/test_api.py::TestClientsCreateEndpoint::test_create_client_with_all_fields PASSED [ 59%]
+clients/tests/test_api.py::TestClientDetailEndpoint::test_get_client_detail_success PASSED [ 60%]
+clients/tests/test_api.py::TestClientDetailEndpoint::test_get_client_detail_unauthenticated PASSED [ 60%]
+clients/tests/test_api.py::TestClientDetailEndpoint::test_get_client_detail_not_found PASSED [ 60%]
+clients/tests/test_api.py::TestClientDetailEndpoint::test_get_client_detail_not_own PASSED [ 61%]
+clients/tests/test_api.py::TestClientDetailEndpoint::test_detail_includes_all_fields PASSED [ 61%]
+clients/tests/test_api.py::TestClientUpdateEndpoint::test_update_client_success PASSED [ 61%]
+clients/tests/test_api.py::TestClientUpdateEndpoint::test_update_client_partial PASSED [ 62%]
+clients/tests/test_api.py::TestClientUpdateEndpoint::test_update_client_unauthenticated PASSED [ 62%]
+clients/tests/test_api.py::TestClientUpdateEndpoint::test_update_client_not_own PASSED [ 63%]
+clients/tests/test_api.py::TestClientUpdateEndpoint::test_update_duplicate_email_error PASSED [ 63%]
+clients/tests/test_api.py::TestClientDeleteEndpoint::test_delete_client_success PASSED [ 63%]
+clients/tests/test_api.py::TestClientDeleteEndpoint::test_delete_client_unauthenticated PASSED [ 64%]
+clients/tests/test_api.py::TestClientDeleteEndpoint::test_delete_client_not_own PASSED [ 64%]
+clients/tests/test_api.py::TestClientDeleteEndpoint::test_delete_client_not_found PASSED [ 65%]
+clients/tests/test_api.py::TestClientStatsEndpoint::test_client_stats_success PASSED [ 65%]
+clients/tests/test_api.py::TestClientStatsEndpoint::test_client_stats_with_projects PASSED [ 65%]
+clients/tests/test_models.py::TestClientModelCreation::test_create_client_success PASSED [ 66%]
+clients/tests/test_models.py::TestClientModelCreation::test_create_client_required_fields PASSED [ 66%]
+clients/tests/test_models.py::TestClientModelCreation::test_create_client_optional_fields PASSED [ 66%]
+clients/tests/test_models.py::TestClientModelCreation::test_unique_email_per_user PASSED [ 67%]
+clients/tests/test_models.py::TestClientModelMethods::test_str_representation PASSED [ 67%]
+clients/tests/test_models.py::TestClientModelMethods::test_total_earnings_no_projects PASSED [ 68%]
+clients/tests/test_models.py::TestClientModelMethods::test_total_earnings_with_projects PASSED [ 68%]
+clients/tests/test_models.py::TestClientModelMethods::test_project_count_no_projects PASSED [ 68%]
+clients/tests/test_models.py::TestClientModelMethods::test_project_count_with_projects PASSED [ 69%]
+clients/tests/test_models.py::TestClientEdgeCases::test_very_long_name PASSED [ 69%]
+clients/tests/test_models.py::TestClientEdgeCases::test_email_with_special_chars PASSED [ 70%]
+clients/tests/test_models.py::TestClientEdgeCases::test_notes_with_newlines_and_unicode PASSED [ 70%]
+clients/tests/test_models.py::TestClientEdgeCases::test_timestamps_created PASSED [ 70%]
+clients/tests/test_serializers.py::TestClientListSerializer::test_serialize_client PASSED [ 71%]
+clients/tests/test_serializers.py::TestClientListSerializer::test_includes_computed_fields PASSED [ 71%]
+clients/tests/test_serializers.py::TestClientListSerializer::test_list_serialization PASSED [ 71%]
+clients/tests/test_serializers.py::TestClientListSerializer::test_read_only_fields PASSED [ 72%]
+clients/tests/test_serializers.py::TestClientDetailSerializer::test_serialize_client_with_all_fields PASSED [ 72%]
+clients/tests/test_serializers.py::TestClientDetailSerializer::test_includes_notes_field PASSED [ 73%]
+clients/tests/test_serializers.py::TestClientCreateUpdateSerializer::test_valid_creation_data PASSED [ 73%]
+clients/tests/test_serializers.py::TestClientCreateUpdateSerializer::test_missing_required_name PASSED [ 73%]
+clients/tests/test_serializers.py::TestClientCreateUpdateSerializer::test_missing_required_email PASSED [ 74%]
+clients/tests/test_serializers.py::TestClientCreateUpdateSerializer::test_duplicate_email_validation PASSED [ 74%]
+clients/tests/test_serializers.py::TestClientCreateUpdateSerializer::test_duplicate_email_allowed_for_other_user PASSED [ 75%]
+clients/tests/test_serializers.py::TestClientCreateUpdateSerializer::test_update_allows_own_email PASSED [ 75%]
+clients/tests/test_serializers.py::TestClientCreateUpdateSerializer::test_optional_fields_validation PASSED [ 75%]
+clients/tests/test_serializers.py::TestSerializerEdgeCases::test_invalid_email_format PASSED [ 76%]
+clients/tests/test_serializers.py::TestSerializerEdgeCases::test_empty_optional_fields PASSED [ 76%]
+projects/tests/test_api.py::TestProjectsListEndpoint::test_list_projects_authenticated PASSED [ 76%]
+projects/tests/test_api.py::TestProjectsListEndpoint::test_list_projects_unauthenticated PASSED [ 77%]
+projects/tests/test_api.py::TestProjectsListEndpoint::test_list_projects_returns_correct_fields PASSED [ 77%]
+projects/tests/test_api.py::TestProjectsListEndpoint::test_list_only_own_projects PASSED [ 78%]
+projects/tests/test_api.py::TestProjectsListEndpoint::test_filter_projects_by_status PASSED [ 78%]
+projects/tests/test_api.py::TestProjectsListEndpoint::test_filter_projects_by_client PASSED [ 78%]
+projects/tests/test_api.py::TestProjectsListEndpoint::test_search_projects_by_name PASSED [ 79%]
+projects/tests/test_api.py::TestProjectsCreateEndpoint::test_create_project_success PASSED [ 79%]
+projects/tests/test_api.py::TestProjectsCreateEndpoint::test_create_project_unauthenticated PASSED [ 80%]
+projects/tests/test_api.py::TestProjectsCreateEndpoint::test_create_project_missing_name PASSED [ 80%]
+projects/tests/test_api.py::TestProjectsCreateEndpoint::test_create_project_missing_client PASSED [ 80%]
+projects/tests/test_api.py::TestProjectsCreateEndpoint::test_create_project_with_other_users_client PASSED [ 81%]
+projects/tests/test_api.py::TestProjectsCreateEndpoint::test_create_project_with_negative_budget PASSED [ 81%]
+projects/tests/test_api.py::TestProjectsCreateEndpoint::test_create_project_minimal_data PASSED [ 81%]
+projects/tests/test_api.py::TestProjectDetailEndpoint::test_get_project_detail_success PASSED [ 82%]
+projects/tests/test_api.py::TestProjectDetailEndpoint::test_get_project_detail_unauthenticated PASSED [ 82%]
+projects/tests/test_api.py::TestProjectDetailEndpoint::test_get_project_detail_not_found PASSED [ 83%]
+projects/tests/test_api.py::TestProjectDetailEndpoint::test_get_project_detail_not_own PASSED [ 83%]
+projects/tests/test_api.py::TestProjectDetailEndpoint::test_detail_includes_all_fields PASSED [ 83%]
+projects/tests/test_api.py::TestProjectUpdateEndpoint::test_update_project_success PASSED [ 84%]
+projects/tests/test_api.py::TestProjectUpdateEndpoint::test_update_project_unauthenticated PASSED [ 84%]
+projects/tests/test_api.py::TestProjectUpdateEndpoint::test_update_project_not_own PASSED [ 85%]
+projects/tests/test_api.py::TestProjectUpdateEndpoint::test_update_project_change_status PASSED [ 85%]
+projects/tests/test_api.py::TestProjectDeleteEndpoint::test_delete_project_success PASSED [ 85%]
+projects/tests/test_api.py::TestProjectDeleteEndpoint::test_delete_project_unauthenticated PASSED [ 86%]
+projects/tests/test_api.py::TestProjectDeleteEndpoint::test_delete_project_not_own PASSED [ 86%]
+projects/tests/test_api.py::TestProjectEdgeCasesIntegration::test_project_with_large_budget PASSED [ 86%]
+projects/tests/test_api.py::TestProjectEdgeCasesIntegration::test_project_with_long_description PASSED [ 87%]
+projects/tests/test_api.py::TestProjectEdgeCasesIntegration::test_project_dates_ordering PASSED [ 87%]
+projects/tests/test_models.py::TestProjectModelCreation::test_create_project_success PASSED [ 88%]
+projects/tests/test_models.py::TestProjectModelCreation::test_project_default_status PASSED [ 88%]
+projects/tests/test_models.py::TestProjectModelCreation::test_project_default_budget_zero PASSED [ 88%]
+projects/tests/test_models.py::TestProjectModelCreation::test_project_optional_fields PASSED [ 89%]
+projects/tests/test_models.py::TestProjectStatus::test_all_status_choices_valid PASSED [ 89%]
+projects/tests/test_models.py::TestProjectStatus::test_invalid_status_rejected PASSED [ 90%]
+projects/tests/test_models.py::TestProjectModelMethods::test_str_representation PASSED [ 90%]
+projects/tests/test_models.py::TestProjectModelMethods::test_is_overdue_no_end_date PASSED [ 90%]
+projects/tests/test_models.py::TestProjectModelMethods::test_is_overdue_future_end_date PASSED [ 91%]
+projects/tests/test_models.py::TestProjectModelMethods::test_is_overdue_past_end_date PASSED [ 91%]
+projects/tests/test_models.py::TestProjectModelMethods::test_completed_project_not_overdue PASSED [ 91%]
+projects/tests/test_models.py::TestProjectModelMethods::test_days_until_deadline_no_end_date PASSED [ 92%]
+projects/tests/test_models.py::TestProjectModelMethods::test_days_until_deadline_with_date PASSED [ 92%]
+projects/tests/test_models.py::TestProjectModelMethods::test_progress_percent_no_hours PASSED [ 93%]
+projects/tests/test_models.py::TestProjectModelMethods::test_timestamps_created PASSED [ 93%]
+projects/tests/test_models.py::TestProjectEdgeCases::test_project_with_very_large_budget PASSED [ 93%]
+projects/tests/test_models.py::TestProjectEdgeCases::test_project_with_decimal_hours PASSED [ 94%]
+projects/tests/test_models.py::TestProjectEdgeCases::test_project_long_description PASSED [ 94%]
+projects/tests/test_models.py::TestProjectEdgeCases::test_project_dates_validation PASSED [ 95%]
+projects/tests/test_serializers.py::TestProjectListSerializer::test_serialize_project PASSED [ 95%]
+projects/tests/test_serializers.py::TestProjectListSerializer::test_includes_computed_fields PASSED [ 95%]
+projects/tests/test_serializers.py::TestProjectListSerializer::test_includes_status_display PASSED [ 96%]
+projects/tests/test_serializers.py::TestProjectListSerializer::test_list_serialization PASSED [ 96%]
+projects/tests/test_serializers.py::TestProjectDetailSerializer::test_serialize_project_with_all_fields PASSED [ 96%]
+projects/tests/test_serializers.py::TestProjectDetailSerializer::test_includes_advanced_computed_fields PASSED [ 97%]
+projects/tests/test_serializers.py::TestProjectCreateUpdateSerializer::test_valid_creation_data PASSED [ 97%]
+projects/tests/test_serializers.py::TestProjectCreateUpdateSerializer::test_missing_required_name PASSED [ 98%]
+projects/tests/test_serializers.py::TestProjectCreateUpdateSerializer::test_missing_required_client PASSED [ 98%]
+projects/tests/test_serializers.py::TestProjectCreateUpdateSerializer::test_client_ownership_validation PASSED [ 98%]
+projects/tests/test_serializers.py::TestProjectCreateUpdateSerializer::test_negative_budget_validation PASSED [ 99%]
+projects/tests/test_serializers.py::TestProjectCreateUpdateSerializer::test_negative_hours_validation PASSED [ 99%]
+projects/tests/test_serializers.py::TestProjectCreateUpdateSerializer::test_date_validation_start_after_end FAILED [100%]
+
+================================== FAILURES ===================================
+___ TestProjectCreateUpdateSerializer.test_date_validation_start_after_end ____
+
+self = <projects.tests.test_serializers.TestProjectCreateUpdateSerializer object at 0x0000023A28862450>
+db = None, user = <User: testuser@example.com>
+rf = <django.test.client.RequestFactory object at 0x0000023A28A294F0>
+client_obj = <Client: Test Client (testuser@example.com)>
+
+    def test_date_validation_start_after_end(self, db, user, rf, client_obj):
+        """Test: start_date nem¨×e břt po end_date."""
+        request = rf.post("/")
+        request.user = user
+    
+        start_date = timezone.now().date() + timedelta(days=10)
+        end_date = timezone.now().date() + timedelta(days=5)
+    
+        data = {
+            "name": "Test Project",
+            "client": client_obj.id,
+            "start_date": start_date,
+            "end_date": end_date,
+        }
+        serializer = ProjectCreateUpdateSerializer(data=data, context={"request": request})
+        assert not serializer.is_valid()
+>       assert "non_field_errors" in serializer.errors or "start_date" in serializer.errors
+E       AssertionError: assert ('non_field_errors' in {'end_date': [ErrorDetail(string='Deadline musÝ břt po datu zaŔßtku.', code='invalid')]} or 'start_date' in {'end_date': [ErrorDetail(string='Deadline musÝ břt po datu zaŔßtku.', code='invalid')]})
+E        +  where {'end_date': [ErrorDetail(string='Deadline musÝ břt po datu zaŔßtku.', code='invalid')]} = ProjectCreateUpdateSerializer(context={'request': <WSGIRequest: POST '/'>}, data={'name': 'Test Project', 'client': 122, 'start_date': datetime.date(2026, 3, 27), 'end_date': datetime.date(2026, 3, 22)}):\n    name = CharField(help_text='Nßzev projektu', max_length=255)\n    description = CharField(allow_blank=True, help_text='Podrobnř popis projektu', required=False, style={'base_template': 'textarea.html'})\n    client = PrimaryKeyRelatedField(help_text='Klient, pro kterÚho je projekt', queryset=Client.objects.all())\n    status = ChoiceField(choices=[('draft', 'Nßvrh'), ('active', 'AktivnÝ'), ('completed', 'Hotovo'), ('archived', 'Archivovßno'), ('cancelled', 'ZruÜeno')], help_text='Status projektu', required=False)\n    budget = DecimalField(decimal_places=2, help_text='Celkovř rozpoŔet projektu', max_digits=10, required=False)\n    estimated_hours = DecimalField(decimal_places=2, help_text='OdhadnutÚ hodiny', max_digits=8, required=False)\n    start_date = DateField(allow_null=True, required=False)\n    end_date = DateField(allow_null=True, required=False).errors
+E        +  and   {'end_date': [ErrorDetail(string='Deadline musÝ břt po datu zaŔßtku.', code='invalid')]} = ProjectCreateUpdateSerializer(context={'request': <WSGIRequest: POST '/'>}, data={'name': 'Test Project', 'client': 122, 'start_date': datetime.date(2026, 3, 27), 'end_date': datetime.date(2026, 3, 22)}):\n    name = CharField(help_text='Nßzev projektu', max_length=255)\n    description = CharField(allow_blank=True, help_text='Podrobnř popis projektu', required=False, style={'base_template': 'textarea.html'})\n    client = PrimaryKeyRelatedField(help_text='Klient, pro kterÚho je projekt', queryset=Client.objects.all())\n    status = ChoiceField(choices=[('draft', 'Nßvrh'), ('active', 'AktivnÝ'), ('completed', 'Hotovo'), ('archived', 'Archivovßno'), ('cancelled', 'ZruÜeno')], help_text='Status projektu', required=False)\n    budget = DecimalField(decimal_places=2, help_text='Celkovř rozpoŔet projektu', max_digits=10, required=False)\n    estimated_hours = DecimalField(decimal_places=2, help_text='OdhadnutÚ hodiny', max_digits=8, required=False)\n    start_date = DateField(allow_null=True, required=False)\n    end_date = DateField(allow_null=True, required=False).errors
+
+projects\tests\test_serializers.py:163: AssertionError
+---------------------------- Captured stderr setup ----------------------------
+DEBUG 2026-03-17 17:44:42,263 declarations PostGeneration: Calling tests.factories.password(<User: testuser@example.com>, <BuildStep for <StepBuilder(<DjangoOptions for UserFactory>, strategy='create')>>, value_provided=True, value='testpass123', extra={})
+----------------------------- Captured log setup ------------------------------
+DEBUG    factory.generate:declarations.py:673 PostGeneration: Calling tests.factories.password(<User: testuser@example.com>, <BuildStep for <StepBuilder(<DjangoOptions for UserFactory>, strategy='create')>>, value_provided=True, value='testpass123', extra={})
+-------------------------- Captured stderr teardown ---------------------------
+Destroying test database for alias 'default'...
+
+============================== warnings summary ===============================
+users/tests/test_api.py: 18 warnings
+users/tests/test_models.py: 11 warnings
+users/tests/test_serializers.py: 11 warnings
+clients/tests/test_api.py: 35 warnings
+clients/tests/test_models.py: 19 warnings
+clients/tests/test_serializers.py: 16 warnings
+projects/tests/test_api.py: 33 warnings
+projects/tests/test_models.py: 19 warnings
+projects/tests/test_serializers.py: 14 warnings
+  C:\Users\frank\AppData\Local\Programs\Python\Python312\Lib\site-packages\factory\django.py:182: DeprecationWarning: UserFactory._after_postgeneration will stop saving the instance after postgeneration hooks in the next major release.
+  If the save call is extraneous, set skip_postgeneration_save=True in the UserFactory.Meta.
+  To keep saving the instance, move the save call to your postgeneration hooks or override _after_postgeneration.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=============================== tests coverage ================================
+_______________ coverage: platform win32, python 3.12.7-final-0 _______________
+
+Name                                                                                                        Stmts   Miss Branch BrPart  Cover   Missing
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+apps\__init__.py                                                                                                0      0      0      0   100%
+apps\common\__init__.py                                                                                         0      0      0      0   100%
+apps\common\apps.py                                                                                             5      0      0      0   100%
+apps\common\exceptions.py                                                                                      14      0      0      0   100%
+apps\common\middleware.py                                                                                      19     10      6      1    40%   25-47
+apps\common\mixins.py                                                                                           5      5      0      0     0%   5-18
+apps\common\models.py                                                                                          42     12      0      0    71%   30, 33, 36, 39, 46, 53, 75-76, 79, 82-83, 87
+apps\common\pagination.py                                                                                       5      0      0      0   100%
+apps\common\permissions.py                                                                                     20     10      4      0    42%   14-17, 29-32, 45-46
+apps\workspaces\__init__.py                                                                                     0      0      0      0   100%
+apps\workspaces\admin.py                                                                                       18      0      0      0   100%
+apps\workspaces\apps.py                                                                                         5      0      0      0   100%
+apps\workspaces\migrations\0001_initial.py                                                                      8      0      0      0   100%
+apps\workspaces\migrations\0002_setup_default_workspaces.py                                                    22     10      4      1    50%   19-32, 42-43
+apps\workspaces\migrations\__init__.py                                                                          0      0      0      0   100%
+apps\workspaces\models.py                                                                                      30      2      0      0    93%   42, 78
+apps\workspaces\serializers.py                                                                                 20      1      0      0    95%   15
+apps\workspaces\services.py                                                                                    56     40     12      0    24%   16-36, 41, 49-52, 57-68, 73-85, 90-103
+apps\workspaces\urls.py                                                                                         4      0      0      0   100%
+apps\workspaces\views.py                                                                                       42     26      8      0    32%   23-34, 47-61, 71-85
+clients\__init__.py                                                                                             0      0      0      0   100%
+clients\admin.py                                                                                                9      0      0      0   100%
+clients\apps.py                                                                                                 4      0      0      0   100%
+clients\migrations\0001_initial.py                                                                              7      0      0      0   100%
+clients\migrations\0002_rename_clients_cl_user_id_24a1f5_idx_clients_cli_user_id_ebd3f8_idx_and_more.py         5      0      0      0   100%
+clients\migrations\0003_populate_workspace.py                                                                  12      4      4      1    56%   12-15
+clients\migrations\__init__.py                                                                                  0      0      0      0   100%
+clients\models.py                                                                                              27      0      0      0   100%
+clients\serializers.py                                                                                         36      0      4      0   100%
+clients\services.py                                                                                            37      2     10      3    89%   17, 39->38, 55
+clients\tests\__init__.py                                                                                       0      0      0      0   100%
+clients\tests\conftest.py                                                                                       8      1      0      0    88%   25
+clients\tests\test_api.py                                                                                     172      0      0      0   100%
+clients\tests\test_models.py                                                                                   61      0      0      0   100%
+clients\tests\test_serializers.py                                                                              96      0      2      0   100%
+clients\urls.py                                                                                                 4      0      0      0   100%
+clients\views.py                                                                                               45      1     12      2    95%   82->exit, 100
+projects\__init__.py                                                                                            0      0      0      0   100%
+projects\admin.py                                                                                               9      0      0      0   100%
+projects\apps.py                                                                                                4      0      0      0   100%
+projects\migrations\0001_initial.py                                                                             7      0      0      0   100%
+projects\migrations\0002_rename_projects_pr_user_id_3f5a2b_idx_projects_pr_user_id_3cbd31_idx_and_more.py       5      0      0      0   100%
+projects\migrations\0003_populate_workspace.py                                                                 12      4      4      1    56%   12-15
+projects\migrations\__init__.py                                                                                 0      0      0      0   100%
+projects\models.py                                                                                             52      4     10      1    92%   100-101, 110-113
+projects\serializers.py                                                                                        66      0     14      2    98%   144->146, 146->149
+projects\services.py                                                                                           70     21     28      9    67%   18, 31, 39-42, 51, 61, 65, 69, 80, 89, 99-104, 119-125
+projects\tests\__init__.py                                                                                      0      0      0      0   100%
+projects\tests\conftest.py                                                                                     12      1      0      0    92%   34
+projects\tests\test_api.py                                                                                    171      0      6      0   100%
+projects\tests\test_models.py                                                                                  88      0      2      0   100%
+projects\tests\test_serializers.py                                                                             89      0      2      0   100%
+projects\urls.py                                                                                                4      0      0      0   100%
+projects\views.py                                                                                              63     16     10      1    77%   57-58, 102-103, 108->exit, 112-113, 128-131, 143-155
+users\__init__.py                                                                                               0      0      0      0   100%
+users\admin.py                                                                                                 15      0      0      0   100%
+users\apps.py                                                                                                   3      0      0      0   100%
+users\migrations\0001_initial.py                                                                                7      0      0      0   100%
+users\migrations\__init__.py                                                                                    0      0      0      0   100%
+users\models.py                                                                                                45      0      8      0   100%
+users\serializers.py                                                                                           33      0      4      0   100%
+users\template_urls.py                                                                                          3      0      0      0   100%
+users\template_views.py                                                                                        13      6      0      0    54%   11, 15, 19, 23, 27, 31
+users\tests\__init__.py                                                                                         0      0      0      0   100%
+users\tests\conftest.py                                                                                        15      1      0      0    93%   27
+users\tests\test_api.py                                                                                       197      0      0      0   100%
+users\tests\test_edgecases.py                                                                                 133      2      2      0    99%   89-91
+users\tests\test_legacy.py                                                                                    311      0      0      0   100%
+users\tests\test_models.py                                                                                     82      0      0      0   100%
+users\tests\test_serializers.py                                                                               122      0      2      0   100%
+users\urls.py                                                                                                   5      0      0      0   100%
+users\views.py                                                                                                 53      0      6      0   100%
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+TOTAL                                                                                                        2527    179    164     22    91%
+Coverage HTML written to dir htmlcov
+=========================== short test summary info ===========================
+FAILED projects/tests/test_serializers.py::TestProjectCreateUpdateSerializer::test_date_validation_start_after_end
+=========== 1 failed, 259 passed, 176 warnings in 148.48s (0:02:28) ===========

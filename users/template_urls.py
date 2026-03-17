@@ -8,4 +8,5 @@ urlpatterns = [
     path("dashboard/", template_views.dashboard_page, name="dashboard"),
     path("clients/", template_views.clients_page, name="clients"),
     path("projects/", template_views.projects_page, name="projects"),
+    path("timer/", template_views.timer_page, name="timer"),
 ]

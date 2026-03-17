@@ -160,4 +160,4 @@ class TestProjectCreateUpdateSerializer:
         }
         serializer = ProjectCreateUpdateSerializer(data=data, context={"request": request})
         assert not serializer.is_valid()
-        assert "non_field_errors" in serializer.errors or "start_date" in serializer.errors
+        assert "end_date" in serializer.errors

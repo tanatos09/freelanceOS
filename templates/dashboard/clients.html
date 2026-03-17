@@ -9,6 +9,7 @@
     <li><a href="/accounts/dashboard/" data-page="dashboard">Dashboard</a></li>
     <li><a href="/accounts/clients/" data-page="clients">Klienti</a></li>
     <li><a href="/accounts/projects/" data-page="projects">Projekty</a></li>
+    <li><a href="/accounts/timer/" data-page="timer">Timer</a></li>
   </ul>
   <div class="navbar-right">
     <span id="userEmail" style="color: var(--muted); font-size: 0.9rem;">…</span>
@@ -110,9 +111,10 @@
   </div>
 </div>
 
+{% endblock %}
+
 {% block extra_scripts %}
 <script>
   UIManager.setActiveNav('clients');
 </script>
-{% endblock %}
 {% endblock %}

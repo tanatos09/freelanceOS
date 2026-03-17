@@ -122,7 +122,7 @@ class UIManager {
    */
   static async loadUser() {
     try {
-      const user = await api.get('/auth/me/');
+      const user = await window.api.get('/auth/me/');
       localStorage.setItem('user', JSON.stringify(user));
       return user;
     } catch (err) {
@@ -131,7 +131,7 @@ class UIManager {
       const publicPages = ['/accounts/login/', '/accounts/register/'];
       const isPublicPage = publicPages.some(page => window.location.pathname === page);
       if (!isPublicPage) {
-        api.logout();
+        window.api.logout();
       }
     }
   }
@@ -230,13 +230,21 @@ class FormHelper {
 
     // Show new errors
     Object.entries(errors).forEach(([field, messages]) => {
+      const msg = Array.isArray(messages) ? messages[0] : messages;
+      // Non-field errors and detail shown as toast
+      if (field === 'non_field_errors' || field === 'detail') {
+        UIManager.error(String(msg));
+        return;
+      }
       const input = formEl.elements[field];
       if (input) {
-        const msg = Array.isArray(messages) ? messages[0] : messages;
         const error = document.createElement('div');
         error.className = 'form-error';
         error.textContent = msg;
         input.parentNode.appendChild(error);
+      } else {
+        // Field not in form – show as toast fallback
+        UIManager.error(`${field}: ${msg}`);
       }
     });
   }
@@ -249,7 +257,11 @@ class FormHelper {
     if (btn) {
       btn.disabled = loading;
       if (loading) {
+        btn._originalText = btn.innerHTML;
         btn.textContent = '…';
+      } else if (btn._originalText) {
+        btn.innerHTML = btn._originalText;
+        btn._originalText = null;
       }
     }
     const inputs = formEl.querySelectorAll('input, textarea, select');
@@ -289,7 +301,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (logoutBtn) {
     logoutBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      api.logout();
+      window.api.logout();
     });
   }
 
