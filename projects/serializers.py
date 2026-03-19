@@ -30,7 +30,13 @@ class ProjectListSerializer(serializers.ModelSerializer):
             "progress",
             "created_at",
         )
-        read_only_fields = ("client_name", "is_overdue", "days_until_deadline", "progress", "created_at")
+        read_only_fields = (
+            "client_name",
+            "is_overdue",
+            "days_until_deadline",
+            "progress",
+            "created_at",
+        )
 
     def get_is_overdue(self, obj):
         return obj.is_overdue()
