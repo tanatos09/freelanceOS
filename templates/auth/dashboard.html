@@ -1,135 +1,333 @@
-{% extends "base.html" %}
+{% extends "layouts/base.html" %}
 {% block title %}Dashboard – FreelanceOS{% endblock %}
 
-{% block body %}
-<!-- Navbar -->
-<nav class="navbar">
-  <a href="/accounts/dashboard/" class="navbar-brand">FreelanceOS</a>
-  <ul class="navbar-nav">
-    <li><a href="/accounts/dashboard/" data-page="dashboard">Dashboard</a></li>
-    <li><a href="/accounts/clients/" data-page="clients">Klienti</a></li>
-    <li><a href="/accounts/projects/" data-page="projects">Projekty</a></li>
-    <li><a href="/accounts/timer/" data-page="timer">Timer</a></li>
-  </ul>
-  <div class="navbar-right">
-    <span id="userEmail" style="color: var(--muted); font-size: 0.9rem;">…</span>
-    <button class="btn-outline" id="logoutBtn">Odhlásit se</button>
+{% block breadcrumb %}Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Page header -->
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-sub" id="greeting">Načítám…</p>
   </div>
-</nav>
+</div>
 
-<!-- Main content -->
-<main class="main">
-  <div class="page-title">Dashboard</div>
-  <div class="page-sub" id="greeting">Vítejte zpět!</div>
+<!-- ── Stat cards ─────────────────────────── -->
+<div class="dash-grid">
 
-  <!-- Stats cards -->
-  <div class="cards">
-    <div class="card">
-      <div class="card-label">Aktivní projekty</div>
-      <div class="card-value accent" id="activeProjectsCount">—</div>
+  <!-- Aktivní projekty -->
+  <div class="dash-card dash-card--accent">
+    <div class="dash-card-top">
+      <span class="dash-card-label">Aktivní projekty</span>
+      <span class="dash-card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+        </svg>
+      </span>
     </div>
-    <div class="card">
-      <div class="card-label">Klienti</div>
-      <div class="card-value" id="clientsCount">—</div>
+    <div class="dash-card-value" id="activeProjectsCount">
+      <span class="stat-skeleton"></span>
     </div>
-    <div class="card">
-      <div class="card-label">Všechny projekty</div>
-      <div class="card-value" id="projectsCount">—</div>
-    </div>
-    <div class="card">
-      <div class="card-label">Po termínu</div>
-      <div class="card-value text-danger" id="overdueCount">—</div>
+    <div class="dash-card-note">
+      <a href="/accounts/projects/">Zobrazit projekty →</a>
     </div>
   </div>
 
-  <!-- Timer status widget -->
-  <div id="timerWidget" style="
-    margin-top: 2rem;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.4rem 1.6rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    flex-wrap: wrap;
-  ">
-    <div id="timerWidgetRunning" style="display: none; align-items: center; gap: 1rem; flex-wrap: wrap;">
-      <span style="font-size: 1.4rem;">⏱</span>
-      <div>
-        <div style="font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em;">Timer běží</div>
-        <div id="timerWidgetProject" style="font-weight: 600; color: var(--accent);"></div>
+  <!-- Zpožděné projekty -->
+  <div class="dash-card dash-card--danger">
+    <div class="dash-card-top">
+      <span class="dash-card-label">Zpožděné projekty</span>
+      <span class="dash-card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </span>
+    </div>
+    <div class="dash-card-value" id="overdueCount">
+      <span class="stat-skeleton"></span>
+    </div>
+    <div class="dash-card-note" id="overdueNote"></div>
+  </div>
+
+  <!-- Odpracováno dnes -->
+  <div class="dash-card dash-card--success">
+    <div class="dash-card-top">
+      <span class="dash-card-label">Odpracováno dnes</span>
+      <span class="dash-card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+      </span>
+    </div>
+    <div class="dash-card-value" id="todayHours">
+      <span class="stat-skeleton"></span>
+    </div>
+    <div class="dash-card-note">
+      <a href="/accounts/timer/">Přejít na timer →</a>
+    </div>
+  </div>
+
+  <!-- Klienti -->
+  <div class="dash-card">
+    <div class="dash-card-top">
+      <span class="dash-card-label">Klienti</span>
+      <span class="dash-card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+      </span>
+    </div>
+    <div class="dash-card-value" id="clientsCount">
+      <span class="stat-skeleton"></span>
+    </div>
+    <div class="dash-card-note">
+      <a href="/accounts/clients/">Zobrazit klienty →</a>
+    </div>
+  </div>
+
+</div><!-- /.dash-grid -->
+
+<!-- ── Timer widget ────────────────────────── -->
+<div class="dash-section">
+  <h2 class="dash-section-title">Stav timeru</h2>
+  <div class="timer-widget">
+
+    <!-- Running -->
+    <div id="timerRunning" style="display: none;" class="timer-running">
+      <span class="timer-pulse"></span>
+      <div class="timer-info">
+        <div class="timer-label">Pracuješ na</div>
+        <div class="timer-project" id="timerWidgetProject">—</div>
       </div>
+      <a href="/accounts/timer/" class="btn btn-primary btn-sm">Zobrazit timer →</a>
     </div>
-    <div id="timerWidgetIdle" style="display: flex; align-items: center; gap: 1rem;">
-      <span style="font-size: 1.4rem; opacity: 0.4;">⏱</span>
-      <div style="color: var(--muted); font-size: 0.9rem;">Timer není spuštěn</div>
+
+    <!-- Idle -->
+    <div id="timerIdle" class="timer-idle">
+      <span class="timer-idle-icon">⏸</span>
+      <span class="timer-idle-text">Timer není spuštěn</span>
+      <a href="/accounts/timer/" class="btn btn-outline btn-sm">Spustit →</a>
     </div>
-    <a href="/accounts/timer/" class="btn-primary" style="white-space: nowrap;">
-      Přejít na timer →
+
+  </div>
+</div>
+
+<!-- ── Recent Activity ───────────────────────── -->
+<div class="dash-section">
+  <h2 class="dash-section-title">Nedávná aktivita</h2>
+  <div class="activity-feed" id="activityFeed">
+    <!-- skeleton -->
+    <div class="activity-day-group" id="activitySkeleton">
+      <div class="activity-day-label"><span class="row-skeleton" style="width:50px"></span></div>
+      <ul class="activity-list">
+        <li class="activity-item">
+          <span class="activity-dot"></span>
+          <div class="activity-body">
+            <span class="row-skeleton" style="width:120px"></span>
+            <span class="row-skeleton" style="width:200px;margin-top:4px"></span>
+          </div>
+          <span class="row-skeleton" style="width:38px;height:20px;border-radius:4px"></span>
+        </li>
+        <li class="activity-item">
+          <span class="activity-dot"></span>
+          <div class="activity-body">
+            <span class="row-skeleton" style="width:100px"></span>
+            <span class="row-skeleton" style="width:160px;margin-top:4px"></span>
+          </div>
+          <span class="row-skeleton" style="width:38px;height:20px;border-radius:4px"></span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ── Rychlé akce ─────────────────────────── -->
+<div class="dash-section">
+  <h2 class="dash-section-title">Rychlé akce</h2>
+  <div class="dash-actions">
+    <a href="/accounts/clients/" class="dash-action-card">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+      </svg>
+      Přidat klienta
+    </a>
+    <a href="/accounts/projects/" class="dash-action-card">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+      </svg>
+      Nový projekt
+    </a>
+    <a href="/accounts/timer/" class="dash-action-card">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <polygon points="5 3 19 12 5 21 5 3"/>
+      </svg>
+      Spustit timer
     </a>
   </div>
-
-  <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
-    <a href="/accounts/clients/" class="btn-primary">Spravovat klienty</a>
-    <a href="/accounts/projects/" class="btn-primary">Spravovat projekty</a>
-    <a href="/accounts/timer/" class="btn-primary">Spustit timer</a>
-  </div>
-</main>
+</div>
 
 {% endblock %}
 
-{% block extra_scripts %}
+{% block extra_js %}
 <script>
-  UIManager.setActiveNav('dashboard');
+(function () {
+  'use strict';
 
-  (async function loadDashboard() {
-    try {
-      // Stats from dedicated endpoint
-      const stats = await window.api.dashboard.stats();
-      if (stats) {
-        document.getElementById('clientsCount').textContent = stats.clients_count ?? 0;
-        document.getElementById('projectsCount').textContent = stats.projects_count ?? 0;
-        document.getElementById('activeProjectsCount').textContent = stats.active_projects_count ?? 0;
-        document.getElementById('overdueCount').textContent = stats.overdue_projects_count ?? 0;
-      } else {
-        document.getElementById('clientsCount').textContent = 0;
-        document.getElementById('projectsCount').textContent = 0;
-        document.getElementById('activeProjectsCount').textContent = 0;
-        document.getElementById('overdueCount').textContent = 0;
-      }
-    } catch (err) {
-      console.error('Failed to load stats:', err);
-      document.getElementById('clientsCount').textContent = 0;
-      document.getElementById('projectsCount').textContent = 0;
-      document.getElementById('activeProjectsCount').textContent = 0;
-      document.getElementById('overdueCount').textContent = 0;
+  /* ── helpers ── */
+  function setText(id, val) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = val;
+  }
+  function setHtml(id, html) {
+    var el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+  }
+  function fmtHours(secs) {
+    var h = Math.floor(secs / 3600);
+    var m = Math.floor((secs % 3600) / 60);
+    if (h === 0) return m + 'm';
+    if (m === 0) return h + 'h';
+    return h + 'h ' + m + 'm';
+  }
+
+  /* ── greeting ── */
+  try {
+    var user = JSON.parse(localStorage.getItem('user') || 'null');
+    var name = user && user.email ? user.email.split('@')[0] : null;
+    setText('greeting', name ? ('Vítejte zpět, ' + name + '! 👋') : 'Vítejte zpět!');
+  } catch (_) {
+    setText('greeting', 'Vítejte zpět!');
+  }
+
+  /* ── stat cards ── */
+  window.api.dashboard.stats()
+    .then(function (stats) {
+      setText('activeProjectsCount', stats.active_projects_count ?? 0);
+      setText('clientsCount',        stats.clients_count          ?? 0);
+
+      var overdue = stats.overdue_projects_count ?? 0;
+      setText('overdueCount', overdue);
+      setHtml('overdueNote', overdue === 0
+        ? '<span style="color:var(--success)">Vše v pořádku 🎉</span>'
+        : '<a href="/accounts/projects/">Zobrazit zpožděné →</a>');
+    })
+    .catch(function () {
+      ['activeProjectsCount', 'overdueCount', 'clientsCount'].forEach(function (id) {
+        setText(id, '—');
+      });
+    });
+
+  /* ── today's hours ── */
+  var today = new Date().toISOString().split('T')[0];
+  window.api.workcommits.list({ date: today })
+    .then(function (commits) {
+      var secs = commits
+        .filter(function (c) { return c.end_time; })
+        .reduce(function (sum, c) { return sum + c.duration_seconds; }, 0);
+      setText('todayHours', secs === 0 ? '0h' : fmtHours(secs));
+    })
+    .catch(function () { setText('todayHours', '—'); });
+
+  /* ── recent activity ── */
+  (function loadActivity() {
+    var since = new Date();
+    since.setDate(since.getDate() - 6);
+    var dateFrom = since.toISOString().split('T')[0];
+
+    window.api.workcommits.list({ date_from: dateFrom })
+      .then(function (commits) {
+        var finished = (commits || []).filter(function (c) { return c.end_time; });
+        renderActivity(finished);
+      })
+      .catch(function () { renderActivity([]); });
+  }());
+
+  function renderActivity(commits) {
+    var feed = document.getElementById('activityFeed');
+    if (!feed) return;
+
+    if (commits.length === 0) {
+      feed.innerHTML = '<p class="activity-empty">Žádné záznamy za poslední týden.</p>';
+      return;
     }
 
-    try {
-      // Timer status
-      const running = await window.api.workcommits.running();
-      const widgetRunning = document.getElementById('timerWidgetRunning');
-      const widgetIdle = document.getElementById('timerWidgetIdle');
+    // Group by local date string YYYY-MM-DD
+    var groups = {};
+    var order  = [];
+    commits.forEach(function (c) {
+      var d = new Date(c.start_time).toLocaleDateString('cs-CZ', { year: 'numeric', month: '2-digit', day: '2-digit' });
+      var key = new Date(c.start_time).toISOString().split('T')[0];
+      if (!groups[key]) { groups[key] = { label: d, items: [] }; order.push(key); }
+      groups[key].items.push(c);
+    });
+    order.sort().reverse();
+
+    var todayKey     = new Date().toISOString().split('T')[0];
+    var yesterdayKey = new Date(Date.now() - 864e5).toISOString().split('T')[0];
+
+    function dayLabel(key) {
+      if (key === todayKey)     return 'Dnes';
+      if (key === yesterdayKey) return 'Včera';
+      return groups[key].label;
+    }
+    function fmtDur(secs) {
+      var h = Math.floor(secs / 3600);
+      var m = Math.floor((secs % 3600) / 60);
+      if (h > 0) return '+' + h + 'h' + (m ? '\u00a0' + m + 'm' : '');
+      return '+' + m + 'm';
+    }
+    function esc(s) {
+      var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML;
+    }
+
+    var html = '';
+    order.forEach(function (key) {
+      var g = groups[key];
+      html += '<div class="activity-day-group">';
+      html += '<div class="activity-day-label">' + dayLabel(key) + '</div>';
+      html += '<ul class="activity-list">';
+      g.items.forEach(function (c) {
+        var dur  = fmtDur(c.duration_seconds || 0);
+        var desc = c.description ? esc(c.description) : '<em class="activity-no-desc">bez popisu</em>';
+        html += '<li class="activity-item">';
+        html += '<span class="activity-dot"></span>';
+        html += '<div class="activity-body">';
+        html += '<span class="activity-project">' + esc(c.project_name || '—') + '</span>';
+        html += '<span class="activity-desc">' + desc + '</span>';
+        html += '</div>';
+        html += '<span class="activity-dur">' + dur + '</span>';
+        html += '</li>';
+      });
+      html += '</ul></div>';
+    });
+
+    feed.innerHTML = html;
+  }
+
+  /* ── timer status ── */
+  window.api.workcommits.running()
+    .then(function (running) {
+      var runEl  = document.getElementById('timerRunning');
+      var idleEl = document.getElementById('timerIdle');
       if (running) {
-        widgetRunning.style.display = 'flex';
-        widgetIdle.style.display = 'none';
-        document.getElementById('timerWidgetProject').textContent = running.project_name || '';
+        setText('timerWidgetProject', running.project_name || '');
+        runEl.style.display  = 'flex';
+        idleEl.style.display = 'none';
       } else {
-        widgetRunning.style.display = 'none';
-        widgetIdle.style.display = 'flex';
+        runEl.style.display  = 'none';
+        idleEl.style.display = 'flex';
       }
-    } catch (err) {
-      console.error('Failed to load timer status:', err);
-    }
+    })
+    .catch(function () {});
 
-    try {
-      const user = JSON.parse(localStorage.getItem('user') || 'null');
-      if (user && user.email) {
-        document.getElementById('greeting').textContent = `Vítejte zpět, ${user.email}!`;
-      }
-    } catch (_) {}
-  })();
+}());
 </script>
 {% endblock %}

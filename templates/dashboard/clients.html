@@ -1,111 +1,119 @@
-{% extends "base.html" %}
+{% extends "layouts/base.html" %}
 {% block title %}Klienti – FreelanceOS{% endblock %}
 
-{% block body %}
-<!-- Navbar -->
-<nav class="navbar">
-  <a href="/accounts/dashboard/" class="navbar-brand">FreelanceOS</a>
-  <ul class="navbar-nav">
-    <li><a href="/accounts/dashboard/" data-page="dashboard">Dashboard</a></li>
-    <li><a href="/accounts/clients/" data-page="clients">Klienti</a></li>
-    <li><a href="/accounts/projects/" data-page="projects">Projekty</a></li>
-    <li><a href="/accounts/timer/" data-page="timer">Timer</a></li>
-  </ul>
-  <div class="navbar-right">
-    <span id="userEmail" style="color: var(--muted); font-size: 0.9rem;">…</span>
-    <button class="btn-outline" id="logoutBtn">Odhlásit se</button>
-  </div>
-</nav>
+{% block breadcrumb %}Klienti{% endblock %}
 
-<!-- Main content -->
-<main class="main">
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-    <div>
-      <div class="page-title">Klienti</div>
-      <div class="page-sub">Spravujte své klienty a sledujte jejich projekty</div>
-    </div>
-    <button class="btn-primary" id="addClientBtn">+ Přidat klienta</button>
-  </div>
+{% block content %}
 
-  <!-- Search -->
-  <div style="margin-bottom: 1.5rem;">
-    <input type="text" id="searchInput" placeholder="Hledat klienty..." style="
-      width: 100%;
-      padding: 0.65rem 0.85rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text);
-      font-size: 0.95rem;
-    " />
+<!-- Page header -->
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Klienti</h1>
+    <p class="page-sub">Spravujte své klienty a sledujte jejich projekty</p>
   </div>
+  <button class="btn btn-primary" id="addClientBtn">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Přidat klienta
+  </button>
+</div>
 
-  <!-- Clients table -->
-  <div class="table-wrap">
-    <table id="clientsTable">
-      <thead>
-        <tr>
-          <th>Název</th>
-          <th>Email</th>
-          <th>Projektů</th>
-          <th>Vytvořeno</th>
-          <th style="text-align: right;">Akce</th>
-        </tr>
-      </thead>
-      <tbody id="clientsTbody">
-        <tr style="text-align: center;">
-          <td colspan="5" style="color: var(--muted);">Načítám...</td>
-        </tr>
-      </tbody>
-    </table>
+<!-- Search bar -->
+<div class="list-toolbar">
+  <input
+    type="search"
+    class="list-search"
+    id="searchInput"
+    placeholder="Hledat klienty…"
+    autocomplete="off"
+  />
+</div>
+
+<!-- Clients table -->
+<div class="table-wrap" id="clientsTableWrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Klient</th>
+        <th>Email</th>
+        <th>Projektů</th>
+        <th>Tržby</th>
+        <th>Přidán</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="clientsTbody">
+      <!-- skeleton rows injected by JS -->
+      <tr class="skeleton-row"><td><span class="row-skeleton" style="width:140px"></span></td><td><span class="row-skeleton" style="width:160px"></span></td><td><span class="row-skeleton" style="width:30px"></span></td><td><span class="row-skeleton" style="width:70px"></span></td><td><span class="row-skeleton" style="width:80px"></span></td><td></td></tr>
+      <tr class="skeleton-row"><td><span class="row-skeleton" style="width:120px"></span></td><td><span class="row-skeleton" style="width:180px"></span></td><td><span class="row-skeleton" style="width:30px"></span></td><td><span class="row-skeleton" style="width:60px"></span></td><td><span class="row-skeleton" style="width:80px"></span></td><td></td></tr>
+      <tr class="skeleton-row"><td><span class="row-skeleton" style="width:160px"></span></td><td><span class="row-skeleton" style="width:150px"></span></td><td><span class="row-skeleton" style="width:30px"></span></td><td><span class="row-skeleton" style="width:75px"></span></td><td><span class="row-skeleton" style="width:80px"></span></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Empty state -->
+<div id="emptyState" class="empty-state" style="display: none;">
+  <div class="empty-state-icon">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
   </div>
+  <div class="empty-state-title">Zatím žádní klienti</div>
+  <div class="empty-state-text">Přidejte svého prvního klienta a začněte sledovat projekty.</div>
+  <button class="btn btn-primary" id="addClientEmptyBtn">Přidat prvního klienta</button>
+</div>
 
-  <!-- Empty state -->
-  <div id="emptyState" class="empty-state" style="display: none;">
-    <div class="empty-state-icon">👤</div>
-    <div class="empty-state-title">Žádní klienti</div>
-    <div class="empty-state-text">Zatím jste nevytvořili žádného klienta.</div>
-    <button class="btn-primary" id="addClientEmptyBtn">Přidat prvního klienta</button>
-  </div>
-</main>
-
-<!-- Add/Edit Client Modal -->
+<!-- Add / Edit modal -->
 <div class="modal" id="clientModal">
   <div class="modal-content">
     <div class="modal-header">
       <h2 class="modal-title" id="modalTitle">Přidat klienta</h2>
-      <button class="modal-close" data-modal-close="clientModal">&times;</button>
+      <button class="modal-close" data-modal-close="clientModal" aria-label="Zavřít">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
     </div>
 
-    <form id="clientForm">
-      <div class="form-group">
-        <label for="clientName">Jméno *</label>
-        <input type="text" id="clientName" name="name" required />
+    <form id="clientForm" novalidate>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="clientName" class="required">Jméno</label>
+          <input type="text" id="clientName" name="name" autocomplete="name" required />
+          <div class="form-error"></div>
+        </div>
+        <div class="form-group">
+          <label for="clientEmail" class="required">Email</label>
+          <input type="email" id="clientEmail" name="email" autocomplete="email" required />
+          <div class="form-error"></div>
+        </div>
       </div>
 
-      <div class="form-group">
-        <label for="clientEmail">Email *</label>
-        <input type="email" id="clientEmail" name="email" required />
-      </div>
-
-      <div class="form-group">
-        <label for="clientCompany">Společnost</label>
-        <input type="text" id="clientCompany" name="company" />
-      </div>
-
-      <div class="form-group">
-        <label for="clientPhone">Telefon</label>
-        <input type="tel" id="clientPhone" name="phone" />
+      <div class="form-row">
+        <div class="form-group">
+          <label for="clientCompany">Společnost</label>
+          <input type="text" id="clientCompany" name="company" autocomplete="organization" />
+        </div>
+        <div class="form-group">
+          <label for="clientPhone">Telefon</label>
+          <input type="tel" id="clientPhone" name="phone" autocomplete="tel" />
+        </div>
       </div>
 
       <div class="form-group">
         <label for="clientNotes">Poznámky</label>
-        <textarea id="clientNotes" name="notes"></textarea>
+        <textarea id="clientNotes" name="notes" placeholder="Doplňkové informace…"></textarea>
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn-outline" data-modal-close="clientModal">Zrušit</button>
-        <button type="submit" class="btn-primary">Uložit</button>
+        <button type="button" class="btn btn-outline" data-modal-close="clientModal">Zrušit</button>
+        <button type="submit" class="btn btn-primary">Uložit</button>
       </div>
     </form>
   </div>
@@ -113,8 +121,4 @@
 
 {% endblock %}
 
-{% block extra_scripts %}
-<script>
-  UIManager.setActiveNav('clients');
-</script>
-{% endblock %}
+{% block extra_js %}{% endblock %}

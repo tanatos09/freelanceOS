@@ -16,7 +16,6 @@ class ClientsManager {
   }
 
   attachEventListeners() {
-    // Add client buttons
     document.getElementById('addClientBtn')?.addEventListener('click', () => {
       this.openAddModal();
     });
@@ -24,13 +23,11 @@ class ClientsManager {
       this.openAddModal();
     });
 
-    // Form submission
     document.getElementById('clientForm').addEventListener('submit', (e) => {
       e.preventDefault();
       this.handleFormSubmit();
     });
 
-    // Search
     document.getElementById('searchInput')?.addEventListener(
       'input',
       UIManager.debounce((e) => {
@@ -41,47 +38,90 @@ class ClientsManager {
   }
 
   async loadClients() {
+    this.showSkeleton();
     try {
-      const tbody = document.getElementById('clientsTbody');
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--muted);">Načítám...</td></tr>';
-
       this.clients = await window.api.clients.list(this.searchQuery);
       this.renderTable();
     } catch (err) {
       console.error('Failed to load clients:', err);
       UIManager.error(err.message || 'Chyba při načítání klientů');
       document.getElementById('clientsTbody').innerHTML =
-        '<tr><td colspan="5" style="text-align: center; color: var(--danger);">Chyba při načítání</td></tr>';
+        `<tr><td colspan="6" style="text-align:center;color:var(--danger);padding:2rem">
+          Chyba při načítání dat.
+         </td></tr>`;
     }
+  }
+
+  showSkeleton() {
+    const tbody = document.getElementById('clientsTbody');
+    if (!tbody) return;
+    const tableWrap = tbody.closest('.table-wrap');
+    const emptyState = document.getElementById('emptyState');
+
+    const rows = Array.from({ length: 3 }, () => `
+      <tr class="skeleton-row">
+        <td><span class="row-skeleton" style="width:140px"></span><span class="row-skeleton" style="width:90px;margin-top:4px"></span></td>
+        <td><span class="row-skeleton" style="width:160px"></span></td>
+        <td><span class="row-skeleton" style="width:30px"></span></td>
+        <td><span class="row-skeleton" style="width:70px"></span></td>
+        <td><span class="row-skeleton" style="width:80px"></span></td>
+        <td></td>
+      </tr>
+    `).join('');
+
+    tbody.innerHTML = rows;
+    if (tableWrap) tableWrap.style.display = 'block';
+    if (emptyState) emptyState.style.display = 'none';
   }
 
   renderTable() {
     const tbody = document.getElementById('clientsTbody');
     const emptyState = document.getElementById('emptyState');
-    const table = document.getElementById('clientsTable');
+    const tableWrap = tbody ? tbody.closest('.table-wrap') : null;
 
-    if (this.clients.length === 0) {
-      table.style.display = 'none';
+    // Filter locally on search
+    const q = this.searchQuery.toLowerCase();
+    const filtered = q
+      ? this.clients.filter(c =>
+          c.name.toLowerCase().includes(q) ||
+          (c.email || '').toLowerCase().includes(q) ||
+          (c.company || '').toLowerCase().includes(q)
+        )
+      : this.clients;
+
+    if (filtered.length === 0) {
+      tableWrap.style.display = 'none';
       emptyState.style.display = 'block';
       return;
     }
 
-    table.style.display = 'table';
+    tableWrap.style.display = 'block';
     emptyState.style.display = 'none';
 
-    tbody.innerHTML = this.clients.map(client => `
+    tbody.innerHTML = filtered.map(client => `
       <tr>
         <td>
-          <strong>${this.escapeHtml(client.name)}</strong>
-          ${client.company ? `<div style="color: var(--muted); font-size: 0.85rem;">${this.escapeHtml(client.company)}</div>` : ''}
+          <div class="client-name">${this.escapeHtml(client.name)}</div>
+          ${client.company
+            ? `<div class="client-company">${this.escapeHtml(client.company)}</div>`
+            : ''}
         </td>
-        <td style="color: var(--muted);">${this.escapeHtml(client.email)}</td>
-        <td>${client.project_count || 0}</td>
-        <td style="color: var(--muted); font-size: 0.9rem;">${UIManager.formatDate(client.created_at)}</td>
-        <td style="text-align: right;">
+        <td class="td-muted">${this.escapeHtml(client.email)}</td>
+        <td>
+          <span class="badge badge-muted">${client.project_count || 0}</span>
+        </td>
+        <td class="td-muted">${UIManager.formatCurrency(client.total_earnings || 0)}</td>
+        <td class="td-muted td-date">${UIManager.formatDate(client.created_at)}</td>
+        <td>
           <div class="td-actions">
-            <button class="btn-sm" onclick="clientsManager.openEditModal(${client.id})">Upravit</button>
-            <button class="btn-sm danger" onclick="clientsManager.delete(${client.id})">Smazat</button>
+            <button class="btn btn-outline btn-sm"
+              onclick="clientsManager.openEditModal(${client.id})">
+              Upravit
+            </button>
+            <button class="btn btn-danger-soft btn-sm"
+              onclick="clientsManager.confirmDelete(${client.id})">
+              Smazat
+            </button>
           </div>
         </td>
       </tr>
@@ -93,41 +133,38 @@ class ClientsManager {
     document.getElementById('modalTitle').textContent = 'Přidat klienta';
     FormHelper.clear(document.getElementById('clientForm'));
     UIManager.modal.open('clientModal');
+    setTimeout(() => document.getElementById('clientName').focus(), 80);
   }
 
   openEditModal(clientId) {
     const client = this.clients.find(c => c.id === clientId);
     if (!client) return;
-
     this.editingId = clientId;
     document.getElementById('modalTitle').textContent = 'Upravit klienta';
+    FormHelper.clear(document.getElementById('clientForm'));
     FormHelper.populate(document.getElementById('clientForm'), {
-      name: client.name,
-      email: client.email,
-      company: client.company,
-      phone: client.phone,
-      notes: client.notes,
+      name:    client.name,
+      email:   client.email,
+      company: client.company || '',
+      phone:   client.phone   || '',
+      notes:   client.notes   || '',
     });
     UIManager.modal.open('clientModal');
+    setTimeout(() => document.getElementById('clientName').focus(), 80);
   }
 
   async handleFormSubmit() {
     const form = document.getElementById('clientForm');
     const data = FormHelper.getData(form);
-
     try {
       FormHelper.setLoading(form, true);
-
       if (this.editingId) {
-        // Update
         await window.api.clients.update(this.editingId, data);
         UIManager.success('Klient upraven');
       } else {
-        // Create
         await window.api.clients.create(data);
         UIManager.success('Klient přidán');
       }
-
       UIManager.modal.close('clientModal');
       await this.loadClients();
     } catch (err) {
@@ -142,14 +179,10 @@ class ClientsManager {
     }
   }
 
-  async delete(clientId) {
+  async confirmDelete(clientId) {
     const client = this.clients.find(c => c.id === clientId);
     if (!client) return;
-
-    if (!confirm(`Opravdu chcete smazat klienta "${client.name}"?\nSoučasně budou smazáni všichni jeho projekty.`)) {
-      return;
-    }
-
+    if (!confirm(`Opravdu chcete smazat klienta „${client.name}“?\nVšechny jeho projekty budou také smazány.`)) return;
     try {
       await window.api.clients.delete(clientId);
       UIManager.success('Klient smazán');
@@ -161,16 +194,17 @@ class ClientsManager {
   }
 
   escapeHtml(text) {
+    if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
   }
 }
 
-// Initialize clients manager when DOM is ready
 let clientsManager;
 document.addEventListener('DOMContentLoaded', () => {
-  if (document.getElementById('addClientBtn') || document.getElementById('clientsTbody')) {
+  if (document.getElementById('clientsTbody')) {
     clientsManager = new ClientsManager();
   }
 });
+
