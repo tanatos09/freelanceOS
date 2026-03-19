@@ -292,6 +292,34 @@
       font-size: 0.8rem;
     }
 
+    /* ── Form errors ── */
+    .form-group.error input {
+      border-color: var(--danger);
+      background: rgba(255, 77, 109, 0.08);
+    }
+
+    .form-group.error input:focus {
+      border-color: var(--danger);
+      box-shadow: 0 0 0 3px rgba(255, 77, 109, 0.15);
+    }
+
+    .form-error {
+      font-size: 0.75rem;
+      color: var(--danger);
+      margin-top: 0.3rem;
+      display: none;
+    }
+
+    .form-group.error .form-error {
+      display: block;
+    }
+
+    .required::after {
+      content: ' *';
+      color: var(--danger);
+      font-weight: 700;
+    }
+
     .btn-sm {
       padding: 0.3rem 0.7rem;
       background: transparent;

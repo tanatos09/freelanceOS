@@ -11,16 +11,19 @@
 
     <form id="registerForm" novalidate>
       <div class="form-group">
-        <label for="email">E-mail</label>
+        <label for="email" class="required">E-mail</label>
         <input type="email" id="email" placeholder="vas@email.cz" autocomplete="email" required />
+        <div class="form-error"></div>
       </div>
       <div class="form-group">
-        <label for="password">Heslo</label>
+        <label for="password" class="required">Heslo</label>
         <input type="password" id="password" placeholder="min. 8 znaků" autocomplete="new-password" required />
+        <div class="form-error"></div>
       </div>
       <div class="form-group">
-        <label for="password2">Potvrdit heslo</label>
+        <label for="password2" class="required">Potvrdit heslo</label>
         <input type="password" id="password2" placeholder="••••••••" autocomplete="new-password" required />
+        <div class="form-error"></div>
       </div>
       <button type="submit" class="btn" id="submitBtn">Vytvořit účet</button>
     </form>
@@ -39,24 +42,72 @@
   const form = document.getElementById('registerForm');
   const alertEl = document.getElementById('alert');
   const btn = document.getElementById('submitBtn');
+  const fields = {
+    email: document.getElementById('email'),
+    password: document.getElementById('password'),
+    password2: document.getElementById('password2'),
+  };
 
   function showAlert(msg, type = 'error') {
     alertEl.textContent = msg;
     alertEl.className = `alert alert-${type} show`;
   }
 
+  function clearErrors() {
+    Object.values(fields).forEach(field => {
+      field.closest('.form-group').classList.remove('error');
+      field.closest('.form-group').querySelector('.form-error').textContent = '';
+    });
+  }
+
+  function setFieldError(fieldName, message) {
+    const field = fields[fieldName];
+    field.closest('.form-group').classList.add('error');
+    field.closest('.form-group').querySelector('.form-error').textContent = message;
+  }
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    clearErrors();
     alertEl.className = 'alert';
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span> Registrace…';
 
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-    const password2 = document.getElementById('password2').value;
+    const email = fields.email.value.trim();
+    const password = fields.password.value;
+    const password2 = fields.password2.value;
+
+    // Client-side validation
+    if (!email) {
+      setFieldError('email', 'E-mail je povinný');
+      btn.disabled = false;
+      btn.textContent = 'Vytvořit účet';
+      return;
+    }
+
+    if (!password) {
+      setFieldError('password', 'Heslo je povinné');
+      btn.disabled = false;
+      btn.textContent = 'Vytvořit účet';
+      return;
+    }
+
+    if (password.length < 8) {
+      setFieldError('password', 'Heslo musí mít minimálně 8 znaků');
+      btn.disabled = false;
+      btn.textContent = 'Vytvořit účet';
+      return;
+    }
+
+    if (!password2) {
+      setFieldError('password2', 'Potvrzení hesla je povinné');
+      btn.disabled = false;
+      btn.textContent = 'Vytvořit účet';
+      return;
+    }
 
     if (password !== password2) {
-      showAlert('Hesla se neshodují.');
+      setFieldError('password2', 'Hesla se neshodují');
       btn.disabled = false;
       btn.textContent = 'Vytvořit účet';
       return;
@@ -72,9 +123,15 @@
       const data = await res.json();
 
       if (!res.ok) {
-        // DRF vrací errors jako objekt – zobrazíme první chybu
-        const firstError = Object.values(data).flat()[0] || 'Registrace selhala.';
-        showAlert(firstError);
+        // DRF vrací errors jako objekt – mapujeme na jednotlivá pole
+        if (data.email) {
+          setFieldError('email', data.email[0] || 'Chyba e-mailu');
+        } else if (data.password) {
+          setFieldError('password', data.password[0] || 'Chyba hesla');
+        } else {
+          const firstError = Object.values(data).flat()[0] || 'Registrace selhala.';
+          showAlert(firstError);
+        }
         return;
       }
 

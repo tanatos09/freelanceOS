@@ -63,14 +63,10 @@ def workcommit_start(request):
         )
 
     # One running timer per user at a time
-    already_running = WorkCommit.objects.filter(
-        user=request.user, end_time__isnull=True
-    ).exists()
+    already_running = WorkCommit.objects.filter(user=request.user, end_time__isnull=True).exists()
     if already_running:
         return Response(
-            {
-                "detail": "Timer již běží. Nejprve ho zastav nebo commitni."
-            },
+            {"detail": "Timer již běží. Nejprve ho zastav nebo commitni."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -101,9 +97,7 @@ def workcommit_commit(request, pk):
     Finish current segment + optionally start a new one.
     """
     try:
-        commit = WorkCommit.objects.select_related("project").get(
-            pk=pk, user=request.user
-        )
+        commit = WorkCommit.objects.select_related("project").get(pk=pk, user=request.user)
     except WorkCommit.DoesNotExist:
         return Response(
             {"detail": "Commit nenalezen."},
@@ -129,9 +123,7 @@ def workcommit_commit(request, pk):
             start_time=timezone.now(),
         )
 
-    next_commit_data = (
-        WorkCommitSerializer(next_commit).data if next_commit else None
-    )
+    next_commit_data = WorkCommitSerializer(next_commit).data if next_commit else None
     return Response(
         {
             "commit": WorkCommitSerializer(commit).data,
@@ -175,9 +167,7 @@ def workcommit_detail(request, pk):
     DELETE /api/v1/workcommits/{pk}/ — delete
     """
     try:
-        commit = WorkCommit.objects.select_related("project").get(
-            pk=pk, user=request.user
-        )
+        commit = WorkCommit.objects.select_related("project").get(pk=pk, user=request.user)
     except WorkCommit.DoesNotExist:
         return Response(
             {"detail": "Commit nenalezen."},

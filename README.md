@@ -56,7 +56,7 @@ Celkem: 2h práce
 | **Den 1** | Auth (login, register, logout) | ✅ HOTOVO |
 | **Den 2-3** | Models + API (clients, projects, timer) | ✅ HOTOVO |
 | **Den 4-5** | Frontend (layouts, CRUD forms, timer UI) | ✅ HOTOVO |
-| **Den 7** | Timer + commit workflow | ⏳ TODO |
+| **Den 7** | Timer + commit workflow | ✅ HOTOVO |
 | **Den 8-9** | Polish + deploy | ⏳ TODO |
 
 ---
