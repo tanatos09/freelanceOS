@@ -56,7 +56,10 @@ class Project(models.Model):
         max_digits=8, decimal_places=2, default=0, help_text="Odhadnuté hodiny"
     )
     hourly_rate = models.DecimalField(
-        max_digits=8, decimal_places=2, default=0, help_text="Hodinová sazba (0 = fallback na klienta)"
+        max_digits=8,
+        decimal_places=2,
+        default=0,
+        help_text="Hodinová sazba (0 = fallback na klienta)",
     )
 
     # Dates

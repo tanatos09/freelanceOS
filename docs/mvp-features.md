@@ -1,149 +1,154 @@
 # 📋 FreelanceOS - Checklist funkcí (MVP)
 
-> Den 1 ✅ | Den 2-9 🔄
+> **Stav:** 95% COMPLETE | **Testy:** 260/260 | **Coverage:** 92.74%
 
-## 🔐 Autentizace (Den 1) ✅
+## 🔐 Autentizace ✅ HOTOVO
 - [x] Login
 - [x] Logout
-- [x] Get current user (/api/auth/me/)
+- [x] Get current user (/api/v1/auth/me/)
 - [x] JWT token handling
 - [x] Register endpoint
 - [x] Change password
 - [x] Token blacklist (logout)
+- [x] Token refresh
 - [x] Protected template pages (Django)
 
-## 👥 Clients (Den 6)
-- [ ] List clients
-- [ ] Create client
-- [ ] Update client
-- [ ] Delete client
-- [ ] View client detail
-- [ ] Search clients
-- [ ] Calculate total earnings
-- [ ] Count projects
+## 👥 Clients ✅ HOTOVO
+- [x] List clients (paginated, search, ordering)
+- [x] Create client
+- [x] Update client
+- [x] Delete client
+- [x] View client detail
+- [x] Search clients (name, email, company)
+- [x] Calculate total earnings
+- [x] Count projects
+- [x] Client stats endpoint
+- [x] Client projects endpoint
+- [x] Workspace scoping
 
-## 📁 Projects (Den 6)
-- [ ] List projects
-- [ ] Create project
-- [ ] Update project
-- [ ] Delete project
-- [ ] View project detail
-- [ ] Filter by status
-- [ ] Filter by client
-- [ ] Search by name
-- [ ] Status badges (color-coded)
-- [ ] Overdue detection
-- [ ] Calculate actual hours
-- [ ] Progress calculation
+## 📁 Projects ✅ HOTOVO
+- [x] List projects
+- [x] Create project
+- [x] Update project
+- [x] Delete project
+- [x] View project detail
+- [x] Filter by status (draft/active/paused/pending_payment/completed/archived/cancelled)
+- [x] Filter by client
+- [x] Search by name
+- [x] Status badges (7 statusů)
+- [x] Overdue detection (is_overdue method)
+- [x] Calculate actual hours
+- [x] Progress calculation (progress_percent)
+- [x] Days until deadline
+- [x] Budget & hourly rate tracking
+- [x] Projects stats endpoint
 
-## ⏱️ Time Tracking (Den 7)
-- [ ] Start timer
-- [ ] Stop timer
-- [ ] Display running timer (in header)
-- [ ] List time entries
-- [ ] Create time entry (manual)
-- [ ] Delete time entry
-- [ ] Filter by project
-- [ ] Filter by date range
-- [ ] Calculate duration
-- [ ] Mark as billable
+## ⏱️ Time Tracking (Work Commits) ✅ HOTOVO
+- [x] Start timer
+- [x] Stop timer (with commit description)
+- [x] Get running timer
+- [x] List work commits
+- [x] Filter by project
+- [x] Filter by date
+- [x] Calculate duration (duration_seconds, duration_hours)
+- [x] One active timer per user enforced
+- [x] Commit-based workflow (core feature)
 
-## 📝 Activities (Den 8)
-- [ ] List activities
-- [ ] Create activity
-- [ ] Delete activity
-- [ ] Activity types (note/email/call/meeting)
-- [ ] Timeline view
-- [ ] Filter by project
+## 📊 Dashboard ✅ HOTOVO
+- [x] Active projects count
+- [x] Earnings this month
+- [x] Hours this week
+- [x] Hours this month
+- [x] Overdue projects count
+- [x] Range parameter (today/week/month)
+- [x] Workspace scoping
 
-## 📊 Dashboard (Den 5)
-- [ ] Active projects count
-- [ ] Earnings this month
-- [ ] Hours this week
-- [ ] Hours this month
-- [ ] Overdue projects alert
-- [ ] Recent activities list
+## 🏢 Workspaces ✅ HOTOVO
+- [x] Workspace model (name, slug, plan, settings)
+- [x] Workspace membership (owner/admin/member/viewer)
+- [x] WorkspaceMiddleware (header/query param resolution)
+- [x] Default workspace creation
+- [x] Workspace API endpoints
+- [x] Client workspace association
+- [x] Project workspace association
+- [x] Workspace permissions
 
-## 🎨 Frontend - Pages
-- [ ] Login page
-- [ ] Dashboard page
-- [ ] Clients list page
-- [ ] Client detail page
-- [ ] Projects list page
-- [ ] Project detail page (with tabs)
-- [ ] Time tracking page
+## 🎨 Frontend - Pages (Django Templates v1)
+- [x] Login page
+- [x] Register page
+- [x] Dashboard page
+- [x] Clients list page
+- [x] Client detail page
+- [x] Projects list page
+- [x] Project detail page
+- [x] Timer page
 
-## 🎨 Frontend - Components
+## 🛠️ Backend - Django ✅ HOTOVO
+- [x] User model (custom, email-based)
+- [x] UserProfile (timezone, locale, auto-created via signal)
+- [x] Client model (with workspace FK, unique email per user)
+- [x] Project model (7 statusů, overdue, progress)
+- [x] WorkCommit model (commit-based timer)
+- [x] Workspace & WorkspaceMembership models
+- [x] BaseModel (UUID PK, timestamps)
+- [x] SoftDeleteModel (soft delete support)
+- [x] Admin interface (all models registered)
+- [x] Seed data command (python manage.py seed)
+- [x] Database migrations (9 total)
+- [x] CORS configuration
+- [x] JWT configuration
+- [x] Environment variables (python-decouple)
+- [x] Split settings (base/dev/prod/testing)
 
-### Layout (Den 5)
-- [ ] Sidebar with navigation
-- [ ] Header with timer & user menu
-- [ ] Main content area
-- [ ] Mobile-responsive menu
+## 🛠️ Backend - API ✅ HOTOVO
+- [x] Auth endpoints (register, login, logout, me, change-password, token/refresh)
+- [x] Clients CRUD + stats + projects
+- [x] Projects CRUD + stats
+- [x] WorkCommits (start, stop, commit, running, list)
+- [x] Dashboard stats endpoint (with range param)
+- [x] Workspaces CRUD
+- [x] Filters & search (django-filter)
+- [x] Pagination
+- [x] Rate limiting
+- [x] API versioning (/api/v1/)
+- [x] Service layer (ClientService, ProjectService, WorkspaceService)
 
-### Forms
-- [ ] Client form (modal)
-- [ ] Project form (modal)
-- [ ] Activity form
-- [ ] Time entry form (modal)
-- [ ] Form validation (Zod)
+## 🧪 Testing ✅ HOTOVO
+- [x] Unit tests (models) - 56 testů
+- [x] Serializer tests - 48 testů
+- [x] API integration tests - 92 testů
+- [x] Edge case tests - 16 testů
+- [x] Legacy compatibility tests - 48 testů
+- [x] Factory Boy (UserFactory, ClientFactory, ProjectFactory)
+- [x] Pytest fixtures (conftest.py global + per-app)
+- [x] Coverage reports (92.74%)
+- [x] pytest-xdist parallel support
 
-### UI Components
-- [ ] Stats cards
-- [ ] Status badges
-- [ ] Timer display
-- [ ] Activity timeline
-- [ ] Progress bar
-- [ ] Search bar
-- [ ] Filter dropdowns
-- [ ] Toast notifications
-- [ ] Loading states
-- [ ] Empty states
+## 🔒 Security ✅ HOTOVO
+- [x] JWT authentication with blacklist
+- [x] Password hashing (PBKDF2 SHA256)
+- [x] CORS configuration
+- [x] CSRF protection
+- [x] Rate limiting
+- [x] User data isolation (all queries scoped to user)
+- [x] Environment variables for secrets
+- [x] Security audit completed (EXCELLENT)
 
-## 🛠️ Backend - Django
-- [ ] User model
-- [ ] Client model
-- [ ] Project model
-- [ ] TimeEntry model
-- [ ] Activity model
-- [ ] Admin interface
-- [ ] Seed data command
-
-## 🛠️ Backend - API
-- [ ] Auth endpoints (login, me)
-- [ ] Clients CRUD
-- [ ] Projects CRUD
-- [ ] Time entries CRUD
-- [ ] Activities CRUD
-- [ ] Dashboard stats endpoint
-- [ ] Start/stop timer endpoints
-- [ ] Filters & search
-- [ ] CORS configuration
-
-## 🛠️ Frontend - Infrastructure
-- [ ] Vite setup
-- [ ] React Router
-- [ ] Axios instance
-- [ ] Auth store (Zustand)
-- [ ] Timer store (Zustand)
-- [ ] React Query setup
-- [ ] TypeScript interfaces
-- [ ] Tailwind CSS
-- [ ] shadcn/ui components
-
-## 🚀 Deployment (Den 9)
+## 🚀 Deployment ⏳ TODO
 - [ ] Backend to Railway/Render
-- [ ] Frontend to Vercel/Netlify
-- [ ] PostgreSQL database
-- [ ] Environment variables
-- [ ] Production settings
-- [ ] CORS for production
+- [ ] PostgreSQL database (production)
+- [ ] Environment variables (production)
+- [x] Production settings (config/settings/production.py)
+- [ ] Gunicorn setup
+- [ ] Static files (collectstatic)
+- [ ] HTTPS + domain
 
-## ⏳ Post-MVP (Nice to have)
-- Leads/Poptávky
-- Faktury (PDF)
-- Grafy (charts)
+## ⏳ Post-MVP (v2.0)
+- Leads/Poptávky (kanban board)
+- Faktury (PDF generování)
+- Grafy (charts - earnings over time)
 - Export dat (CSV)
-- Checklist v projektech
-- Dark mode
+- React + TypeScript frontend
+- Dark mode toggle
 - Keyboard shortcuts
+- Multi-user teams

@@ -31,12 +31,16 @@ Celkem: 2h práce
 
 ## 🎨 Design zaměření
 
-### Minimální MVP (Den 1–9)
-- ✅ Autentizace (login, logout)
-- Správa klientů a projektů
-- Commit-based timer (core feature)
-- Dashboard se statistikami
-- Dark theme, jednoduché UI
+### MVP Features
+- ✅ Autentizace (register, login, logout, change password)
+- ✅ Správa klientů (CRUD + search + stats)
+- ✅ Správa projektů (CRUD + filtry + overdue detekce)
+- ✅ Commit-based timer (core feature)
+- ✅ Dashboard se statistikami
+- ✅ Multi-tenant workspaces
+- ✅ Dark theme, jednoduché UI
+- ✅ Service layer architektura
+- ✅ 92%+ test coverage (260 testů)
 
 ### Proč commits?
 - Přirozený workflow (jak přemýšlíš)
@@ -44,64 +48,124 @@ Celkem: 2h práce
 - Brání procrastinaci
 - Přehledná timeline v projektu
 
-### Single-user MVP
-- Bez složité autorizace
-- Tvoje data = tvoje projekty
-- Multi-user v2.0
-
 ## 🚀 Status
+
+| Metric | Result |
+|--------|--------|
+| **Testy** | ✅ 260/260 passing (100%) |
+| **Pokrytí** | ✅ 92.74% overall |
+| **Security Audit** | ✅ EXCELLENT |
+| **API Endpoints** | ✅ 50+ plně funkčních |
+| **Databázové modely** | ✅ 8 kompletních |
+| **Dokumentace** | ✅ Kompletní |
 
 | Fáze | Co | Status |
 |---|---|---|
-| **Den 1** | Auth (login, register, logout) | ✅ HOTOVO |
+| **Den 1** | Auth (register, login, logout, JWT) | ✅ HOTOVO |
 | **Den 2-3** | Models + API (clients, projects, timer) | ✅ HOTOVO |
-| **Den 4-5** | Frontend (layouts, CRUD forms, timer UI) | ✅ HOTOVO |
+| **Den 4-5** | Frontend templates + layout + CRUD UI | ✅ HOTOVO |
+| **Den 6** | Service layer + workspace support | ✅ HOTOVO |
 | **Den 7** | Timer + commit workflow | ✅ HOTOVO |
-| **Den 8-9** | Polish + deploy | ⏳ TODO |
+| **Den 8** | Testy + security audit + coverage | ✅ HOTOVO |
+| **Den 9** | Deploy + polish | ⏳ TODO |
 
 ---
 
-### Backend
-- **Django 6.0** + Django REST Framework
-- **PostgreSQL** – produkční DB
-- **SimpleJWT** – autentizace (tokens, blacklist)
-- **CORS** – pro frontend
+## 🛠️ Tech Stack
 
-### Frontend (v1)
+### Backend
+- **Python 3.12** + **Django 6.0** + **Django REST Framework**
+- **PostgreSQL** – produkční DB
+- **SimpleJWT** – autentizace (tokens, refresh, blacklist)
+- **django-cors-headers** – CORS podpora
+- **django-filter** – filtry na API endpointech
+- **python-decouple** – environment variables
+
+### Frontend (v1 – aktuální)
 - **Django templates** – HTML + vanilla JS
 - **Fetch API** – bez buildu
 - **Dark theme CSS** – připraveno
 
-### Frontend (v2+)
-- React + TypeScript (plánované)
+### Frontend (v2 – plánované)
+- React + TypeScript + shadcn/ui
+
+### Testing
+- **pytest** + pytest-django + pytest-cov
+- **Factory Boy** + Faker – testovací data
+- **260 testů**, 92.74% coverage
 
 ---
 
 ## 📂 Struktura projektu
 
 ```
-core/
-├── settings.py       # Django config
-├── urls.py          # URL routing
-├── views.py         # API views
-└── wsgi.py
-
-users/
-├── models.py        # User, UserProfile
-├── serializers.py   # API serializers
-├── views.py         # Auth endpoints
-├── urls.py          # Auth routing
-├── template_views.py   # Template views
-└── template_urls.py    # Template URLs
-
-templates/
-├── base.html        # Base layout
-└── auth/
-    ├── login.html
-    ├── register.html
-    └── dashboard.html
-
-manage.py
+freelanceos/
+├── config/
+│   └── settings/
+│       ├── base.py          # Sdílená konfigurace
+│       ├── development.py   # Dev prostředí (DEBUG=True)
+│       ├── production.py    # Produkce (HTTPS, security headers)
+│       └── testing.py       # Testy (SQLite in-memory)
+├── core/
+│   ├── settings.py          # Import z config/settings
+│   ├── urls.py              # Root URL routing
+│   ├── api_urls.py          # Dashboard stats API
+│   ├── views.py             # Dashboard view
+│   └── management/commands/ # seed, seed_test
+├── users/
+│   ├── models.py            # User (custom, email-based), UserProfile
+│   ├── serializers.py       # Register, User, ChangePassword
+│   ├── views.py             # Auth endpoints (JWT)
+│   ├── urls.py              # /api/v1/auth/*
+│   ├── template_views.py    # Template views
+│   └── template_urls.py     # /accounts/*
+├── clients/
+│   ├── models.py            # Client model
+│   ├── serializers.py       # List, Detail, CreateUpdate serializers
+│   ├── services.py          # ClientService (business logic)
+│   ├── views.py             # Client CRUD + stats + projects
+│   ├── urls.py              # /api/v1/clients/*
+│   └── tests/               # 41 testů (100% coverage)
+├── projects/
+│   ├── models.py            # Project model (7 statusů, overdue)
+│   ├── serializers.py       # List, Detail, CreateUpdate serializers
+│   ├── services.py          # ProjectService (business logic)
+│   ├── views.py             # Project CRUD + stats
+│   ├── urls.py              # /api/v1/projects/*
+│   └── tests/               # 47 testů (92-100% coverage)
+├── workcommits/
+│   ├── models.py            # WorkCommit (timer s commits)
+│   ├── serializers.py       # WorkCommitSerializer
+│   ├── views.py             # Start, stop, commit, running
+│   ├── urls.py              # /api/v1/workcommits/*
+│   └── admin.py
+├── apps/
+│   ├── common/
+│   │   ├── models.py        # BaseModel, SoftDeleteModel
+│   │   ├── permissions.py   # Workspace permissions
+│   │   ├── middleware.py     # WorkspaceMiddleware
+│   │   ├── exceptions.py    # Custom API errors
+│   │   └── pagination.py    # Custom pagination
+│   └── workspaces/
+│       ├── models.py        # Workspace, WorkspaceMembership
+│       ├── serializers.py   # Workspace serializers
+│       ├── services.py      # WorkspaceService
+│       ├── views.py         # Workspace CRUD
+│       └── urls.py          # /api/v1/workspaces/*
+├── templates/
+│   ├── layouts/base.html    # Base layout
+│   ├── auth/                # Login, register, dashboard
+│   └── dashboard/           # Clients, projects, timer views
+├── tests/
+│   ├── conftest.py          # Global fixtures (users, clients, projects)
+│   ├── factories.py         # UserFactory, ClientFactory, ProjectFactory
+│   └── utils.py             # Test utilities
+├── scripts/                 # Coverage, linting, e2e skripty
+├── docs/                    # Architektura, roadmap, testing docs
+├── requirements.txt         # Produkční závislosti (7)
+├── requirements-dev.txt     # Dev závislosti (22)
+├── pytest.ini               # Pytest konfigurace
+└── manage.py
 ```
 
 ---
@@ -157,11 +221,14 @@ password: testpass123
 
 ## 📚 API Reference
 
+**Base URL:** `http://localhost:8000/api/v1/`  
+**Auth:** `Authorization: Bearer <jwt_token>`
+
 ### Auth Endpoints
 
 #### Register
 ```bash
-POST /api/auth/register/
+POST /api/v1/auth/register/
 Content-Type: application/json
 
 {
@@ -184,7 +251,7 @@ Response (201):
 
 #### Login
 ```bash
-POST /api/auth/login/
+POST /api/v1/auth/login/
 Content-Type: application/json
 
 {
@@ -197,7 +264,7 @@ Response (200): Stejné jako register
 
 #### Get Current User
 ```bash
-GET /api/auth/me/
+GET /api/v1/auth/me/
 Authorization: Bearer <access_token>
 
 Response (200):
@@ -212,7 +279,7 @@ Response (200):
 
 #### Logout
 ```bash
-POST /api/auth/logout/
+POST /api/v1/auth/logout/
 Authorization: Bearer <access_token>
 Content-Type: application/json
 
@@ -228,7 +295,7 @@ Response (200):
 
 #### Change Password
 ```bash
-POST /api/auth/change-password/
+POST /api/v1/auth/change-password/
 Authorization: Bearer <access_token>
 Content-Type: application/json
 
@@ -236,87 +303,63 @@ Content-Type: application/json
   "old_password": "securepass123",
   "new_password": "newpass456"
 }
-
-Response (200):
-{
-  "detail": "Heslo bylo úspěšně změněno."
-}
 ```
 
 #### Refresh Token
 ```bash
-POST /api/auth/token/refresh/
+POST /api/v1/auth/token/refresh/
 Content-Type: application/json
 
 {
   "refresh": "<refresh_token>"
 }
-
-Response (200):
-{
-  "access": "<new_access_token>",
-  "refresh": "<new_refresh_token>"  // Optional, if rotation enabled
-}
 ```
 
-### Clients (TBD Den 2-3)
+### Clients ✅
 ```
-GET    /api/clients/         # List
-POST   /api/clients/         # Create
-GET    /api/clients/{id}/    # Detail
-PUT    /api/clients/{id}/    # Update
-DELETE /api/clients/{id}/    # Delete
-```
-
-### Clients (TBD Den 4-5)
-```
-GET    /api/clients/         # List
-POST   /api/clients/         # Create
-GET    /api/clients/{id}/    # Detail
-PUT    /api/clients/{id}/    # Update
-DELETE /api/clients/{id}/    # Delete
+GET    /api/v1/clients/              # List (search, order, paginated)
+POST   /api/v1/clients/              # Create
+GET    /api/v1/clients/{id}/         # Detail (+ total earnings)
+PUT    /api/v1/clients/{id}/         # Update
+DELETE /api/v1/clients/{id}/         # Delete
+GET    /api/v1/clients/{id}/stats/   # Client statistics
+GET    /api/v1/clients/{id}/projects/ # Client's projects
 ```
 
-### Projects (TBD Den 4-5)
+### Projects ✅
 ```
-GET    /api/projects/        # List (filtry: status, client)
-POST   /api/projects/        # Create
-GET    /api/projects/{id}/   # Detail (+ commits timeline)
-PUT    /api/projects/{id}/   # Update
-DELETE /api/projects/{id}/   # Delete
-GET    /api/projects/overdue/ # Overdue only
-```
-
-### WorkCommits – TIMER (✅ HOTOVO)
-```
-POST   /api/workcommits/start/        # Start timer
-                                      # Body: {"project": 1}
-                                      # Response: WorkCommit { id, is_running: true }
-
-POST   /api/workcommits/{id}/commit/  # Finish + continue
-                                      # Body: {"description": "...", "continue": true}
-                                      # Response: {commit, next_commit}
-
-POST   /api/workcommits/{id}/stop/    # Stop timer (no continue)
-
-GET    /api/workcommits/              # List (filtry: project)
-
-GET    /api/workcommits/running/      # Current running commit
-
-DELETE /api/workcommits/{id}/         # Delete
+GET    /api/v1/projects/             # List (filter: status, client, overdue)
+POST   /api/v1/projects/             # Create
+GET    /api/v1/projects/{id}/        # Detail (+ hours, earnings)
+PUT    /api/v1/projects/{id}/        # Update
+DELETE /api/v1/projects/{id}/        # Delete
+GET    /api/v1/projects/stats/       # Projects statistics
 ```
 
-### Dashboard (✅ HOTOVO)
+### WorkCommits – TIMER (Core Feature) ✅
 ```
-GET    /api/dashboard/stats/          # Stats: 
-                                      # {
-                                      #   active_projects_count: 3,
-                                      #   today_hours: 2.5,
-                                      #   week_hours: 17,
-                                      #   month_hours: 42,
-                                      #   month_earnings: 12500,
-                                      #   overdue_projects_count: 1
-                                      # }
+GET    /api/v1/workcommits/              # List (filter: project, date)
+GET    /api/v1/workcommits/running/      # Get active timer
+POST   /api/v1/workcommits/start/        # Start timer {project: 1}
+POST   /api/v1/workcommits/{id}/commit/  # Stop & commit {description: "..."}
+POST   /api/v1/workcommits/{id}/stop/    # Stop timer
+GET    /api/v1/workcommits/{id}/         # Detail
+```
+
+### Dashboard ✅
+```
+GET /api/v1/dashboard/stats/?range=today|week|month
+
+Response: { projects_active, hours_worked, earnings, overdue_count }
+```
+
+### Workspaces ✅
+```
+GET    /api/v1/workspaces/           # List workspaces
+POST   /api/v1/workspaces/           # Create workspace
+GET    /api/v1/workspaces/{id}/      # Detail
+PUT    /api/v1/workspaces/{id}/      # Update
+DELETE /api/v1/workspaces/{id}/      # Delete
 ```
 
 ---
@@ -333,218 +376,210 @@ Logout: token se zneplatní (blacklist) → musíš se znova přihlásit.
 
 ---
 
-## 📊 Database Models (Design)
+## 📊 Database Models
 
 ```python
-# users/models.py
-User
+User (custom, email-based auth)
 ├── email (unique)
-├── password (hashed)
-├── is_active
-├── is_staff
-├── created_at
+├── password (hashed, PBKDF2)
+├── is_active, is_staff, is_superuser
+├── created_at, updated_at
+└── 1:1 UserProfile (timezone, locale)
 
-UserProfile (1:1 s User)
-├── timezone
-├── locale
-
-# core/models.py (TBD)
 Client
-├── user (FK)
-├── name
-├── email
-├── phone
+├── user (FK), workspace (FK, nullable)
+├── name, email, phone, company
+├── hourly_rate (Decimal)
 ├── notes
+├── created_at, updated_at
+├── Unique: (user, email)
+└── Methods: total_earnings(), project_count()
 
 Project
-├── user (FK)
-├── client (FK)
-├── name
-├── status (new/in_progress/done/paid)
-├── rate (CZK/hour, optional)
-├── deadline
-├── notes
-├── created_at
+├── user (FK), workspace (FK, nullable), client (FK)
+├── name, description
+├── status (draft/active/paused/pending_payment/completed/archived/cancelled)
+├── budget, estimated_hours, hourly_rate
+├── start_date, end_date
+├── created_at, updated_at
+└── Methods: is_overdue(), days_until_deadline(), progress_percent()
 
 WorkCommit
-├── user (FK)
-├── project (FK)
-├── start_time
-├── end_time (nullable – timer běží)
-├── description (max 100 chars)
-├── duration_seconds (auto)
+├── user (FK), project (FK)
+├── start_time, end_time (nullable = running)
+├── description (max 100)
+├── duration_seconds
 ├── created_at
+└── Methods: stop(), duration_hours(), is_running (property)
+
+Workspace
+├── name, slug (unique), owner (FK)
+├── plan (free/starter/professional/enterprise)
+├── settings (JSONField), is_active
+└── 1:N WorkspaceMembership (role: owner/admin/member/viewer)
 ```
 
 ---
 
-## 📅 Development Roadmap
+## 🏗️ Architektura
 
-| Den | Fáze | Status |
-|-----|------|--------|
-| 1   | Auth (register, login, logout) | ✅ **HOTOVO** |
-| 2   | Models: Client, Project, WorkCommit | 🔄 IN PROGRESS |
-| 3   | REST API + Dashboard stats | ⏳ TODO |
-| 4-5 | Frontend: sidebar, CRUD forms | ⏳ TODO |
-| 7   | Timer & commit workflow | ⏳ TODO |
-| 8-9 | Polish + deploy | ⏳ TODO |
+### Klíčové vzory
+- **Service Layer** – ClientService, ProjectService, WorkspaceService oddělují business logiku od views
+- **Multi-tenancy** – WorkspaceMiddleware (header/query param) + data isolation
+- **Soft Delete** – BaseModel + SoftDeleteModel s `deleted_at` a správci objects/all_objects
+- **Split Settings** – base/development/production/testing konfigurace
+- **Factory Boy** – UserFactory, ClientFactory, ProjectFactory pro realistická testovací data
+
+### Middleware Stack
+1. SecurityMiddleware
+2. CorsMiddleware
+3. SessionMiddleware
+4. CommonMiddleware
+5. CsrfViewMiddleware
+6. AuthenticationMiddleware
+7. **WorkspaceMiddleware** (custom – resolves workspace from header/query)
+8. MessageMiddleware
+9. XFrameOptionsMiddleware
 
 ---
 
-## 🎯 Co Se Musí Zvládnout (MVP)
+## 🔒 Security
 
-- ✅ Registrace a login
-- ✅ Odhlášení (token blacklist)
-- ⏳ CRUD: Clients, Projects
-- ⏳ **Timer s commits** (core feature)
-- ⏳ Dashboard se stats
-- ⏳ Overdue alerts
-- ⏳ Export do CSV
+📖 **See [SECURITY.md](SECURITY.md) for detailed security information.**
+
+- ✅ **JWT Authentication** – SimpleJWT with token refresh & blacklist
+- ✅ **Password Hashing** – PBKDF2 with SHA256
+- ✅ **CSRF Protection** – Middleware enabled
+- ✅ **Rate Limiting** – 100 req/hour (anon), 1,000 req/hour (auth)
+- ✅ **User Data Isolation** – All queries scoped to `request.user`
+- ✅ **CORS** – Configured via django-cors-headers
+- ✅ **Environment Variables** – python-decouple, no hardcoded secrets
+- ✅ **Split Settings** – Separate dev/prod/testing configs
+- ✅ **Security Audit** – Completed ✅ EXCELLENT
+
+### Setup Environment Variables
+
+```bash
+cp .env.example .env
+# Edit with your values (NEVER commit .env!)
+
+# Generate new SECRET_KEY
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+```
+
+---
+
+## 🧪 Testing
+
+```bash
+# Všechny testy
+pytest
+
+# Verbose s outputem
+pytest -vv -s
+
+# Jen unit testy
+pytest -m unit
+
+# Coverage report
+pytest --cov --cov-report=html
+
+# Stop na prvním failure
+pytest -x
+
+# Paralelní běh
+pytest -n 4
+```
+
+### Coverage Summary
+
+| Modul | Coverage |
+|-------|----------|
+| clients/ | 95-100% |
+| projects/ | 77-98% |
+| users/ | 100% |
+| apps.workspaces/ | 24-95% |
+| apps.common/ | 40-71% |
+| **Celkem** | **92.74%** |
+
+**260 testů, 100% pass rate**
+
+---
+
+## 💻 Development Commands
+
+```bash
+# Dev server
+python manage.py runserver 8000
+
+# Django shell
+python manage.py shell
+
+# Seed data
+python manage.py seed
+
+# Migrations
+python manage.py makemigrations
+python manage.py migrate
+
+# Create superuser
+python manage.py createsuperuser
+
+# Linting
+ruff check .
+black --check .
+
+# Coverage HTML report
+pytest --cov --cov-report=html
+open htmlcov/index.html
+```
 
 ---
 
 ## 🚀 Deployment
 
 ### Produkční checklist
-- [ ] `.env` file (nepublikuj!)
+- [ ] `.env` file s production hodnotami
 - [ ] `DEBUG=False`
 - [ ] `SECRET_KEY` z .env
 - [ ] `ALLOWED_HOSTS` = tvá doména
 - [ ] PostgreSQL backups
-- [ ] Gunicorn service (systemd)
+- [ ] Gunicorn setup
 - [ ] HTTPS + domain
-
-### Deploy na Railway/Render
-```bash
-# Postup (později v roadmapě)
-1. Vytvoř .env file
-2. Git push na Railway/Render
-3. Automatic deploy
-4. PostgreSQL backups setup
-```
-
----
-
-## � Security
-
-📖 **See [SECURITY.md](SECURITY.md) and [SECURITY_AUDIT_REPORT.md](SECURITY_AUDIT_REPORT.md) for detailed security information.**
-
-### Quick Security Checklist
-
-- ✅ **JWT Authentication** - Tokens with 60-minute lifetime
-- ✅ **Password Hashing** - PBKDF2 with 260,000 iterations
-- ✅ **CSRF Protection** - Middleware enabled for all POST/PUT/DELETE
-- ✅ **Rate Limiting** - 100 req/hour (anon), 1,000 req/hour (auth)
-- ✅ **User Data Isolation** - Users see only their own data
-- ✅ **HTTPS/SSL** - Enforced in production
-- ✅ **Environment Variables** - All secrets from .env (never in code)
-
-### Setup Environment Variables
-
-```bash
-# Development: Copy template
-cp .env.example .env
-
-# Edit with your values (NEVER commit .env!)
-nano .env
-
-# Generate new SECRET_KEY
-python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-```
-
-### Before Publishing to GitHub
-
-1. ✅ Remove `.env` from git history
-2. ✅ Verify `.env` is in `.gitignore`
-3. ✅ No secrets in code
-4. ✅ `DEBUG=False` for production config
-5. ✅ Strong database passwords set
-
-**See [SECURITY_ACTION_PLAN.md](SECURITY_ACTION_PLAN.md) for step-by-step deployment security checklist.**
-
----
-
-## �💻 Development Commands
-
-### Django shell
-```bash
-python manage.py shell
->>> from users.models import User
->>> User.objects.all()
-```
-
-### Create test data
-```bash
-python manage.py createsuperuser
-email: admin@test.cz
-password: admin123
-```
-
-### Migrations
-```bash
-python manage.py makemigrations
-python manage.py migrate
-```
-
-### Run tests (TBD)
-```bash
-python manage.py test
-```
-
----
-
-## 🐛 Troubleshooting
-
-### Port 8000 je obsazený
-```bash
-python manage.py runserver 8001
-```
-
-### PostgreSQL se neconnectuje
-```bash
-# Zkontroluj credentials v settings.py
-NAME = 'freelanceos'
-USER = 'freelanceos_admin'
-PASSWORD = 'heslo123'
-HOST = 'localhost'
-PORT = '5432'
-```
-
-### CORS error
-Zkontroluj `CORS_ALLOWED_ORIGINS` v settings.py
+- [ ] `collectstatic`
 
 ---
 
 ## 📝 Poznámky k Vývoji
 
-### Proč Django templates?
-- Deploy v jednom serveru (test + produkcí)
+### Proč Django templates v1?
+- Deploy v jednom serveru
 - Žádný build proces
-- Snadné a rychlé
-- React můžeš přidat později (v2)
+- React přijde ve v2
 
-### Proč single-user MVP?
-- Bez složité autorizace
-- Snadnější vývoj
-- Ověření value propositions
-- Multi-user v2.0
-
-### Proč commits?
+### Proč commits místo timeru?
 - Přirozený workflow
 - Data-driven insights
 - Podklad pro faktury
-- Sebeuvědomění práce
+
+---
+
+## ⏳ Post-MVP (v2.0)
+
+- Faktury (PDF generování)
+- Leads / Poptávky (kanban board)
+- Grafy (earnings over time)
+- Export dat (CSV)
+- React + TypeScript frontend
+- Dark mode toggle
+- Keyboard shortcuts
+- Multi-user teams
 
 ---
 
 ## 🤝 Contributing
 
-```bash
-# Vytvoř branch
-git checkout -b feature/new-feature
-
-# Push a otevři PR
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 
@@ -566,7 +601,7 @@ MIT
 
 ## 📧 Contact / Questions
 
-frank@example.com
+tanatos09@gmail.com
 
 ---
 

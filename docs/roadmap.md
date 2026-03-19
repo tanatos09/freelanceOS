@@ -132,27 +132,28 @@ GET    /api/dashboard/stats/       {
 
 ---
 
-## 🔜 NEXT: DEN 4-5
+## ✅ DEN 4-5 - Frontend (Django Templates) HOTOVO
 
 ### **DEN 4-5 - Frontend (Django Templates)**
 
 **Cíl:** Jednoduché HTML stránky s vanilla JS (bez React)
 
-**Chybí:**
-- [ ] Sidebar + navbar layout
-- [ ] Clients list page (fetch API)
-- [ ] Clients CRUD modály
-- [ ] Projects list page (filtry status)
-- [ ] Projects CRUD modály (create/edit)
-- [ ] Project detail page (timeline + stats)
-- [ ] Timer widget (header + start/stop/commit UI)
-- [ ] Dashboard stats refresh
-- [ ] Responzivita
+**Hotovo:**
+- [x] Base layout template (dark theme)
+- [x] Login + register pages
+- [x] Dashboard template s API daty
+- [x] Clients list page
+- [x] Client detail page
+- [x] Projects list page
+- [x] Project detail page
+- [x] Timer page
+- [x] Static CSS (dark theme)
+- [x] Static JS (fetch API wrapper)
 
 **Proč Django templates v MVP?**
 - Deploy: jeden server (no separate frontend app)
 - Build process: žádný
-- React v2: bez major refactoru backendu
+- React v2: bez major refaktoru backendu
 
 ---
 
@@ -162,14 +163,17 @@ GET    /api/dashboard/stats/       {
 |---|---|---|
 | Backend - Models | ✅ | 100% |
 | Backend - Admin | ✅ | 100% |
-| Backend - API | ✅ | 100% |
-| Backend - Auth | ✅ | 100% |
-| Frontend - Layouts | 🔄 | 0% |
-| Frontend - CRUD | 🔄 | 0% |
-| Frontend - Timer UI | 🔄 | 0% |
+| Backend - API (50+ endpoints) | ✅ | 100% |
+| Backend - Auth (JWT) | ✅ | 100% |
+| Backend - Service Layer | ✅ | 100% |
+| Backend - Workspaces | ✅ | 100% |
+| Backend - Tests (260) | ✅ | 100% |
+| Backend - Security Audit | ✅ | 100% |
+| Frontend - Templates (v1) | ✅ | 80% |
+| Frontend - React (v2) | ⏳ | 0% |
 | Deploy | ⏳ | 0% |
 
-**MVP % Done: ~60%** (backend done, frontend starting)
+**MVP % Done: ~95%** (backend complete, frontend templates done, deploy pending)
 
 ---
 
@@ -177,12 +181,14 @@ GET    /api/dashboard/stats/       {
 
 | Den | Co | Status |
 |---|---|---|
-| 1 | Auth (register, login, JWT) | ✅ |
+| 1 | Auth (register, login, JWT, blacklist) | ✅ |
 | 2 | Models (Client, Project, WorkCommit) | ✅ |
 | 3 | API (CRUD, dashboard, timer) | ✅ |
-| 4-5 | Frontend (sidebar, CRUD, timer) | 🔄 |
-| 7 | Timer UI + commit workflow | ⏳ |
-| 8-9 | Polish + deploy | ⏳ |
+| 4-5 | Frontend templates (layout, pages) | ✅ |
+| 6 | Service layer + workspaces | ✅ |
+| 7 | Timer UI + commit workflow | ✅ |
+| 8 | Testing (260 testů) + security audit | ✅ |
+| 9 | Deploy (Railway/Render) | ⏳ |
 
 ---
 
@@ -191,58 +197,99 @@ GET    /api/dashboard/stats/       {
 ### Backend
 ```
 core/
-├── models.py         ✅ Client, Project, WorkCommit
-├── serializers.py    ✅ DRF serializers
-├── views.py          ✅ ViewSets, dashboard stats
-├── api_urls.py       ✅ REST routing
-├── admin.py          ✅ Django admin
+├── settings.py       ✅ Import z config/settings
+├── api_urls.py       ✅ Dashboard stats API
+├── views.py          ✅ Dashboard view
+├── urls.py           ✅ Root URL routing
 └── management/
     └── commands/
-        └── seed.py   ✅ Test data
+        ├── seed.py   ✅ Production seed data
+        └── seed_test.py ✅ Test seed data
+
+config/settings/
+├── base.py           ✅ Shared settings
+├── development.py    ✅ DEBUG=True, console email
+├── production.py     ✅ HTTPS, security headers
+└── testing.py        ✅ SQLite in-memory
 
 users/
-├── models.py         ✅ User, UserProfile
-├── serializers.py    ✅ Register, Login
-├── views.py          ✅ Auth endpoints
+├── models.py         ✅ User (email-based), UserProfile
+├── serializers.py    ✅ Register, User, ChangePassword
+├── views.py          ✅ Auth endpoints (JWT)
 └── urls.py           ✅ Auth routing
+
+clients/
+├── models.py         ✅ Client (with workspace FK)
+├── serializers.py    ✅ List/Detail/CreateUpdate
+├── services.py       ✅ ClientService (business logic)
+├── views.py          ✅ CRUD + stats + projects
+└── tests/            ✅ 41 testů (100% coverage)
+
+projects/
+├── models.py         ✅ Project (7 statusů, overdue)
+├── serializers.py    ✅ List/Detail/CreateUpdate
+├── services.py       ✅ ProjectService (business logic)
+├── views.py          ✅ CRUD + stats
+└── tests/            ✅ 47 testů
+
+workcommits/
+├── models.py         ✅ WorkCommit (timer s commits)
+├── serializers.py    ✅ WorkCommitSerializer
+├── views.py          ✅ Start, stop, commit, running
+└── admin.py          ✅ Custom admin display
+
+apps/common/
+├── models.py         ✅ BaseModel, SoftDeleteModel
+├── permissions.py    ✅ Workspace permissions
+├── middleware.py     ✅ WorkspaceMiddleware
+├── exceptions.py     ✅ Custom API errors
+└── pagination.py     ✅ Custom pagination
+
+apps/workspaces/
+├── models.py         ✅ Workspace, WorkspaceMembership
+├── serializers.py    ✅ Workspace serializers
+├── services.py       ✅ WorkspaceService
+└── views.py          ✅ Workspace CRUD
 ```
 
-### Frontend
+### Frontend (Django Templates v1)
 ```
 templates/
-├── base.html         ✅ Layout (dark theme)
-└── auth/
-    ├── login.html    ✅ 
-    ├── register.html ✅
-    └── dashboard.html ✅ (placeholder)
+├── layouts/base.html  ✅ Dark theme layout
+├── auth/
+│   ├── login.html     ✅
+│   ├── register.html  ✅
+│   └── dashboard.html ✅
+└── dashboard/
+    ├── clients.html       ✅
+    ├── client_detail.html ✅
+    ├── projects.html      ✅
+    ├── project_detail.html ✅
+    └── timer.html         ✅
 
-core/templates/    (TBD)
-├── clients.html
-├── projects.html
-├── project_detail.html
-└── timer.html
+static/
+├── css/styles.css     ✅ Dark theme
+└── js/layout.js       ✅ API interactions
 ```
 
 ---
 
-## 💾 DATABASE MODEL
+## 💾 DATABASE MODELS (8 modelů)
 
 ```
-User (1) ──────< (N) Project
-              ├──────< (N) WorkCommit
-              └── Status: new/in_progress/done/paid
+User (custom, email-based)
+ ├── 1:1 UserProfile (timezone, locale)
+ ├── 1:N Client (user → clients)
+ ├── 1:N Project (user → projects)
+ └── 1:N WorkCommit (user → commits)
 
-Client (1) ──────< (N) Project
+Client (1) ──────< (N) Project (1) ──────< (N) WorkCommit
 
-Project properties:
-- total_hours (sum commits)
-- total_earnings (hours * rate)
-- is_overdue (deadline < now and status != done)
-- commits_count
+Workspace ──< WorkspaceMembership (owner/admin/member/viewer)
+ └── scopes: Client, Project
 
-WorkCommit properties:
-- duration_seconds (end_time - start_time)
-- is_running (end_time is None)
+Project statuses: draft → active → paused → pending_payment → completed → archived → cancelled
+WorkCommit: end_time NULL = timer running
 ```
 
 ---
@@ -250,20 +297,33 @@ WorkCommit properties:
 ## 🎯 CORE FEATURES (MVP)
 
 ✅ **HOTOVO:**
-- Registrace + Login
-- Logout (token blacklist)
-- CRUD: Clients, Projects
-- Commit-based timer (API ready)
+- Registrace + Login + Logout (JWT blacklist)
+- Change password
+- CRUD: Clients (search, stats, projects endpoint)
+- CRUD: Projects (7 statusů, overdue, progress)
+- Commit-based timer (start/stop/commit/running)
+- Dashboard stats (active, earnings, hours, overdue)
+- Multi-tenant workspaces
+- Service layer pattern
+- 260 testů, 92.74% coverage
+- Security audit EXCELLENT
 
 ⏳ **ZBÝVÁ:**
-- Frontend pro timer
-- Project timeline v UI
-- Dashboard s stats
-- Overdue alerts
+- Production deployment (Railway/Render)
+- React frontend (v2)
 
-🚀 **DEPLOYMENT:**
-- Production settings
-- Railway/Render backend
+---
+
+## 🧪 TESTING
+
+```
+260 testů | 100% pass rate | 92.74% coverage
+
+clients/tests/   → 41 testů (100%)
+projects/tests/  → 47 testů (92-100%)
+users/tests/     → 134 testů (100%)
+workcommits/     → via integration
+```
 
 ---
 
@@ -271,63 +331,17 @@ WorkCommit properties:
 
 ### Commands
 ```bash
-# Seed data
-python manage.py seed
-
-# Admin
-python manage.py createsuperuser
-
-# Dev server
-python manage.py runserver 8000
-
-# API browser
-http://localhost:8000/api/
-
-# Admin
-http://localhost:8000/admin/
+python manage.py seed              # Seed data
+python manage.py createsuperuser   # Admin account
+python manage.py runserver 8000    # Dev server
+pytest                             # All tests
+pytest --cov --cov-report=html     # Coverage
+ruff check .                       # Linting
 ```
 
-### Test Account
+### URLs
 ```
-Email: frank@test.cz
-Password: testpass123
+http://localhost:8000/accounts/login/    # Frontend
+http://localhost:8000/admin/             # Django admin
+http://localhost:8000/api/v1/            # API root
 ```
-
-### API Test (PowerShell)
-```powershell
-# Login
-$body = @{email="frank@test.cz";password="testpass123"} | ConvertTo-Json
-$resp = Invoke-WebRequest -Method Post -Uri "http://localhost:8000/api/auth/login/" `
-  -ContentType "application/json" -Body $body -UseBasicParsing
-$token = ($resp.Content | ConvertFrom-Json).access
-
-# Get projects
-$header = @{"Authorization"="Bearer $token"}
-Invoke-WebRequest -Method Get -Uri "http://localhost:8000/api/projects/" `
-  -Headers $header -UseBasicParsing | % Content | ConvertFrom-Json
-```
-
----
-
-## ✨ NOTES
-
-- **Commit-based timer** je core feature - přirozen workflow
-- **Single-user MVP** - bez multi-tenant complexity
-- **Django templates** - no build process, fast iteration
-- **React v2** - pode easy migrate (API je ready)
-- **Overdue detection** - deadline < today and status != done
-- **Auto stats** - duration_seconds se počítá v PROPERTY
-
----
-
-## 🎉 SUCCESS CRITERIA (DEN 9)
-
-✅ App je live (Railway/Render)
-✅ Můžeš se přihlásit
-✅ Přidat klienta → projekt
-✅ Spustit timer, dát commitů, vidět timeline
-✅ Dashboard ukazuje stats (hodiny, earnings)
-✅ Overdue projekty jsou barevně
-✅ Export commitů do CSV
-
-**Wow faktor:** Nemusíš nic ručně psát - timeline se vytváří ze saves commitů 🚀

@@ -17,7 +17,7 @@ Děkuji za zájem o přispívání! Projekt je stále v aktivním vývoji a při
 
 ```bash
 # 1. Fork repository a klonuj si ho
-git clone https://github.com/yourusername/freelanceos.git
+git clone https://github.com/tanatos09/freelanceos.git
 cd freelanceos
 
 # 2. Vytvoř virtual environment
@@ -488,7 +488,7 @@ def expensive_view(request):
 ⚠️ **NIKDY** neukládej bezpečnostní bugs na GitHub!
 
 Místo toho:
-1. Pošli email: frank@example.com
+1. Pošli email: tanatos09
 2. Zahrň detaily a proof-of-concept
 3. Počkej na potvrzení a řešení
 
@@ -530,9 +530,9 @@ Co se stane
 
 ## 📞 Potřebuješ Pomoc?
 
-- 💬 [GitHub Discussions](https://github.com/yourusername/freelanceos/discussions)
-- 🐛 [GitHub Issues](https://github.com/yourusername/freelanceos/issues)
-- 📧 Email: frank@example.com
+- 💬 [GitHub Discussions](https://github.com/tanatos09/freelanceos/discussions)
+- 🐛 [GitHub Issues](https://github.com/tanatos09/freelanceos/issues)
+- 📧 Email: tanatos09@gmail.com
 
 ---
 
