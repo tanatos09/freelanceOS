@@ -1,153 +1,130 @@
-{% extends "base.html" %}
+{% extends "layouts/base.html" %}
 {% block title %}Timer – FreelanceOS{% endblock %}
 
-{% block body %}
-<!-- Navbar -->
-<nav class="navbar">
-  <a href="/accounts/dashboard/" class="navbar-brand">FreelanceOS</a>
-  <ul class="navbar-nav">
-    <li><a href="/accounts/dashboard/" data-page="dashboard">Dashboard</a></li>
-    <li><a href="/accounts/clients/" data-page="clients">Klienti</a></li>
-    <li><a href="/accounts/projects/" data-page="projects">Projekty</a></li>
-    <li><a href="/accounts/timer/" data-page="timer">Timer</a></li>
-  </ul>
-  <div class="navbar-right">
-    <span id="userEmail" style="color: var(--muted); font-size: 0.9rem;">…</span>
-    <button class="btn-outline" id="logoutBtn">Odhlásit se</button>
-  </div>
-</nav>
+{% block breadcrumb %}Timer{% endblock %}
 
-<!-- Main content -->
-<main class="main">
-  <div class="page-title">Timer</div>
-  <div class="page-sub">Commit-based sledování práce</div>
+{% block content %}
 
-  <!-- ── Running timer widget (shown when timer is active) ── -->
-  <div id="runningSection" style="display: none;">
-    <div style="
-      background: var(--surface);
-      border: 1px solid var(--accent);
-      border-radius: var(--radius);
-      padding: 2rem;
-      text-align: center;
-      margin-bottom: 2rem;
-      box-shadow: 0 0 0 1px rgba(108, 99, 255, 0.15), 0 4px 24px rgba(108, 99, 255, 0.1);
-    ">
-      <div style="color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 0.5rem;">
-        Pracuješ na
-      </div>
-      <div id="runningProject" style="font-size: 1.3rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text);">—</div>
-
-      <div id="timerDisplay" style="
-        font-size: 3.5rem;
-        font-weight: 700;
-        font-variant-numeric: tabular-nums;
-        letter-spacing: -0.02em;
-        color: var(--accent);
-        margin-bottom: 2rem;
-        font-family: 'Segoe UI', monospace, system-ui;
-      ">00:00:00</div>
-
-      <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-        <button id="commitBtn" class="btn-primary" style="min-width: 160px;">
-          ✓ Commit + pokračovat
-        </button>
-        <button id="stopBtn" class="btn-outline" style="min-width: 140px;">
-          ■ Zastavit
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── Start timer (shown when no timer running) ── -->
-  <div id="startSection">
-    <div style="
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 2rem;
-      margin-bottom: 2rem;
-    ">
-      <div style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1.5rem;">Spustit timer</div>
-
-      <form id="startForm">
-        <div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
-          <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
-            <label for="projectSelect">Projekt</label>
-            <select id="projectSelect" name="project" required>
-              <option value="">-- Vyberte projekt --</option>
-            </select>
-          </div>
-          <button type="submit" id="startBtn" class="btn-primary" style="height: 42px; white-space: nowrap;">
-            ▶ Spustit
-          </button>
-        </div>
-      </form>
-
-      <div style="margin-top: 1.2rem; color: var(--muted); font-size: 0.85rem;">
-        Zobrazují se pouze <strong>aktivní projekty</strong>.
-        Pokud chcete trackovat projekt, nejprve ho nastavte jako aktivní v sekci
-        <a href="/accounts/projects/" style="color: var(--accent);">Projekty</a>.
-      </div>
-    </div>
-  </div>
-
-  <!-- ── Today's work ── -->
+<!-- Page header -->
+<div class="page-header">
   <div>
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-      <div style="font-size: 1.1rem; font-weight: 600;">Dnešní práce</div>
-      <div style="color: var(--muted); font-size: 0.9rem;">
-        Celkem: <strong id="todayTotal" style="color: var(--text);">0:00</strong>
-      </div>
-    </div>
+    <h1 class="page-title">Timer</h1>
+    <p class="page-sub">Commit-based sledování odpracovaného času</p>
+  </div>
+</div>
 
-    <div class="table-wrap">
-      <table id="todayTable" style="display: none;">
-        <thead>
-          <tr>
-            <th>Čas</th>
-            <th>Projekt</th>
-            <th>Popis</th>
-            <th>Délka</th>
-            <th style="text-align: right;">Akce</th>
-          </tr>
-        </thead>
-        <tbody id="todayTbody"></tbody>
-      </table>
+<!-- ── Running state (hidden until timer starts) ── -->
+<div id="runningSection" style="display: none;">
+  <div class="timer-card timer-card--running">
+    <div class="timer-dot-row">
+      <span class="timer-pulse"></span>
+      <span class="timer-status-label">Pracuješ na</span>
     </div>
-
-    <div id="todayEmpty" class="empty-state">
-      <div class="empty-state-icon">⏱</div>
-      <div class="empty-state-title">Žádná práce dnes</div>
-      <div class="empty-state-text">Spusť timer a začni trackovát svoji práci.</div>
+    <div class="timer-running-project" id="runningProject">—</div>
+    <div class="timer-clock" id="timerDisplay">00:00:00</div>
+    <div class="timer-card-actions">
+      <button id="commitBtn" class="btn btn-primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        Commit + pokračovat
+      </button>
+      <button id="stopBtn" class="btn btn-outline">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+        Zastavit
+      </button>
     </div>
   </div>
-</main>
+</div>
+
+<!-- ── Idle state ── -->
+<div id="startSection">
+  <div class="timer-card timer-card--idle">
+    <div class="timer-idle-header">Spustit timer</div>
+    <form id="startForm" class="timer-start-form">
+      <div class="form-group timer-select-wrap">
+        <label for="projectSelect">Projekt</label>
+        <select id="projectSelect" name="project" required>
+          <option value="">-- Vyberte projekt --</option>
+        </select>
+      </div>
+      <button type="submit" id="startBtn" class="btn btn-primary timer-start-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Spustit
+      </button>
+    </form>
+    <p class="timer-hint">
+      Zobrazují se pouze <strong>aktivní</strong> a <strong>draft</strong> projekty.
+      Pro správu projektů navštivte sekci <a href="/accounts/projects/">Projekty</a>.
+    </p>
+  </div>
+</div>
+
+<!-- ── Today's work ── -->
+<div class="today-section">
+  <div class="today-header">
+    <span class="today-title">Dnešní práce</span>
+    <span class="today-total-wrap">Celkem: <strong id="todayTotal" class="today-total">0:00</strong></span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Čas</th>
+          <th>Projekt</th>
+          <th>Popis</th>
+          <th>Délka</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="todayTbody">
+        <tr class="skeleton-row"><td><span class="row-skeleton" style="width:50px"></span></td><td><span class="row-skeleton" style="width:130px"></span></td><td><span class="row-skeleton" style="width:200px"></span></td><td><span class="row-skeleton" style="width:50px"></span></td><td></td></tr>
+        <tr class="skeleton-row"><td><span class="row-skeleton" style="width:50px"></span></td><td><span class="row-skeleton" style="width:110px"></span></td><td><span class="row-skeleton" style="width:170px"></span></td><td><span class="row-skeleton" style="width:50px"></span></td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div id="todayEmpty" class="empty-state" style="display: none;">
+    <div class="empty-state-icon">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+    </div>
+    <div class="empty-state-title">Žádná práce dnes</div>
+    <div class="empty-state-text">Spusť timer a začni trackovat svoji práci.</div>
+  </div>
+</div>
 
 <!-- Commit modal -->
 <div class="modal" id="commitModal">
-  <div class="modal-content" style="max-width: 420px;">
+  <div class="modal-content modal-content--narrow">
     <div class="modal-header">
       <h2 class="modal-title" id="commitModalTitle">Commit</h2>
-      <button class="modal-close" data-modal-close="commitModal">&times;</button>
+      <button class="modal-close" data-modal-close="commitModal" aria-label="Zavřít">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
     </div>
-
-    <form id="commitForm">
+    <form id="commitForm" novalidate>
       <div class="form-group">
-        <label for="commitDescription">Co jsi dělal/a? <span style="color: var(--muted); font-weight: 400;">(nepovinné, max 100 znaků)</span></label>
+        <label for="commitDescription">
+          Co jsi dělal/a?
+          <span class="label-optional">(nepovinné, max 100 znaků)</span>
+        </label>
         <input
           type="text"
           id="commitDescription"
           name="description"
           maxlength="100"
-          placeholder="např. Oprava CSS navigace..."
+          placeholder="např. Oprava CSS navigace…"
           autocomplete="off"
         />
       </div>
-
       <div class="modal-footer">
-        <button type="button" class="btn-outline" data-modal-close="commitModal">Zrušit</button>
-        <button type="submit" class="btn-primary" id="commitSubmitBtn">Uložit</button>
+        <button type="button" class="btn btn-outline" data-modal-close="commitModal">Zrušit</button>
+        <button type="submit" class="btn btn-primary" id="commitSubmitBtn">Uložit</button>
       </div>
     </form>
   </div>
@@ -155,8 +132,4 @@
 
 {% endblock %}
 
-{% block extra_scripts %}
-<script>
-  UIManager.setActiveNav('timer');
-</script>
-{% endblock %}
+{% block extra_js %}{% endblock %}

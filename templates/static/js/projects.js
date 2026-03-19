@@ -80,18 +80,36 @@ class ProjectsManager {
     }
   }
 
-  async loadProjects() {
-    try {
-      const tbody = document.getElementById('projectsTbody');
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--muted);">Načítám...</td></tr>';
+  showSkeleton() {
+    const tbody = document.getElementById('projectsTbody');
+    if (!tbody) return;
+    const tableWrap = tbody.closest('.table-wrap');
+    if (tableWrap) tableWrap.style.display = '';
+    const emptyState = document.getElementById('emptyState');
+    if (emptyState) emptyState.style.display = 'none';
+    const rows = Array.from({ length: 3 }, () =>
+      `<tr class="skeleton-row">
+        <td><span class="row-skeleton" style="width:150px"></span></td>
+        <td><span class="row-skeleton" style="width:110px"></span></td>
+        <td><span class="row-skeleton" style="width:70px"></span></td>
+        <td><span class="row-skeleton" style="width:90px"></span></td>
+        <td><span class="row-skeleton" style="width:80px"></span></td>
+        <td></td>
+      </tr>`
+    ).join('');
+    tbody.innerHTML = rows;
+  }
 
-      // Load all projects first
+  async loadProjects() {
+    this.showSkeleton();
+    try {
       this.projects = await window.api.projects.list();
       this.renderTable();
     } catch (err) {
       console.error('Failed to load projects:', err);
       UIManager.error(err.message || 'Chyba při načítání projektů');
-      document.getElementById('projectsTbody').innerHTML =
+      const tbody = document.getElementById('projectsTbody');
+      if (tbody) tbody.innerHTML =
         '<tr><td colspan="6" style="text-align: center; color: var(--danger);">Chyba při načítání</td></tr>';
     }
   }
@@ -127,42 +145,43 @@ class ProjectsManager {
   renderTable() {
     const tbody = document.getElementById('projectsTbody');
     const emptyState = document.getElementById('emptyState');
-    const table = document.getElementById('projectsTable');
+    const tableWrap = tbody ? tbody.closest('.table-wrap') : null;
 
     const filtered = this.getFilteredProjects();
 
     if (filtered.length === 0) {
-      table.style.display = 'none';
-      emptyState.style.display = 'block';
+      if (tableWrap) tableWrap.style.display = 'none';
+      if (emptyState) emptyState.style.display = 'block';
       return;
     }
 
-    table.style.display = 'table';
-    emptyState.style.display = 'none';
+    if (tableWrap) tableWrap.style.display = '';
+    if (emptyState) emptyState.style.display = 'none';
 
     tbody.innerHTML = filtered.map(project => {
       const client = this.clients.find(c => c.id === project.client);
       const deadline = new Date(project.end_date);
       const today = new Date();
+      today.setHours(0, 0, 0, 0);
       const isOverdue = project.end_date && deadline < today && project.status !== 'completed' && project.status !== 'cancelled';
 
       return `
-        <tr ${isOverdue ? 'style="background: rgba(255, 77, 109, 0.05);"' : ''}>
+        <tr${isOverdue ? ' class="tr-overdue"' : ''}>
           <td>
-            <strong>${this.escapeHtml(project.name)}</strong>
-            ${isOverdue ? '<div style="color: var(--danger); font-size: 0.8rem;">⚠ Po termínu</div>' : ''}
+            <span class="project-name">${this.escapeHtml(project.name)}</span>
+            ${isOverdue ? '<div class="project-overdue">Po termínu</div>' : ''}
           </td>
-          <td style="color: var(--muted);">${client ? this.escapeHtml(client.name) : 'N/A'}</td>
+          <td class="td-muted">${client ? this.escapeHtml(client.name) : 'N/A'}</td>
           <td>${UIManager.statusBadge(project.status)}</td>
-          <td style="color: var(--muted);">
+          <td class="td-muted">
             ${UIManager.formatDate(project.end_date)}
-            ${project.days_until_deadline != null ? `<div style="font-size: 0.8rem;">${project.days_until_deadline} dní</div>` : ''}
+            ${project.days_until_deadline != null ? `<div class="td-days">${project.days_until_deadline} dní</div>` : ''}
           </td>
           <td>${UIManager.formatCurrency(project.budget)}</td>
-          <td style="text-align: right;">
+          <td>
             <div class="td-actions">
-              <button class="btn-sm" onclick="projectsManager.openEditModal(${project.id})">Upravit</button>
-              <button class="btn-sm danger" onclick="projectsManager.delete(${project.id})">Smazat</button>
+              <button class="btn btn-outline btn-sm" onclick="projectsManager.openEditModal(${project.id})">Upravit</button>
+              <button class="btn btn-danger-soft btn-sm" onclick="projectsManager.confirmDelete(${project.id})">Smazat</button>
             </div>
           </td>
         </tr>
@@ -257,7 +276,7 @@ class ProjectsManager {
     }
   }
 
-  async delete(projectId) {
+  async confirmDelete(projectId) {
     const project = this.projects.find(p => p.id === projectId);
     if (!project) return;
 

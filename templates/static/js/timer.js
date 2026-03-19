@@ -239,29 +239,29 @@ class TimerManager {
   renderTodayList() {
     const tbody = document.getElementById('todayTbody');
     const emptyState = document.getElementById('todayEmpty');
-    const table = document.getElementById('todayTable');
+    const tableWrap = tbody ? tbody.closest('.table-wrap') : null;
 
     if (!tbody) return;
 
     const finished = this.todayCommits.filter(c => !c.is_running);
 
     if (finished.length === 0) {
-      if (table) table.style.display = 'none';
+      if (tableWrap) tableWrap.style.display = 'none';
       if (emptyState) emptyState.style.display = 'block';
       return;
     }
 
-    if (table) table.style.display = 'table';
+    if (tableWrap) tableWrap.style.display = '';
     if (emptyState) emptyState.style.display = 'none';
 
     tbody.innerHTML = finished.map(c => `
       <tr>
-        <td style="color: var(--muted); font-size: 0.85rem;">${this.formatTime(c.start_time)}</td>
+        <td class="td-muted td-time">${this.formatTime(c.start_time)}</td>
         <td><strong>${this.escapeHtml(c.project_name || '')}</strong></td>
-        <td style="color: var(--muted);">${this.escapeHtml(c.description || '—')}</td>
-        <td style="font-variant-numeric: tabular-nums;">${this.formatDuration(c.duration_seconds)}</td>
-        <td style="text-align: right;">
-          <button class="btn-sm danger" onclick="timerManager.deleteCommit(${c.id})">Smazat</button>
+        <td class="td-muted">${this.escapeHtml(c.description || '—')}</td>
+        <td class="td-duration">${this.formatDuration(c.duration_seconds)}</td>
+        <td>
+          <button class="btn btn-danger-soft btn-sm" onclick="timerManager.deleteCommit(${c.id})">Smazat</button>
         </td>
       </tr>
     `).join('');
