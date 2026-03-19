@@ -1,7 +1,8 @@
 from django.urls import path
 
-from . import views
 from projects.views import client_projects
+
+from . import views
 
 app_name = "clients"
 

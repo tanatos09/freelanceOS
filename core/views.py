@@ -19,10 +19,11 @@ def dashboard_stats(request):
 
     Supports workspace-scoped filtering via X-Workspace-Id header.
     """
+    from django.db.models import Sum
+
     from clients.models import Client
     from projects.models import Project
     from workcommits.models import WorkCommit
-    from django.db.models import Sum
 
     user = request.user
     workspace = getattr(request, "workspace", None)
