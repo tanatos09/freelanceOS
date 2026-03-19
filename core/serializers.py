@@ -8,3 +8,4 @@ class DashboardStatsSerializer(serializers.Serializer):
     projects_count = serializers.IntegerField()
     active_projects_count = serializers.IntegerField()
     overdue_projects_count = serializers.IntegerField()
+    total_earnings = serializers.DecimalField(max_digits=12, decimal_places=2)

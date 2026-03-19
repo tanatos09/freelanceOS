@@ -99,7 +99,7 @@ class ClientsManager {
     emptyState.style.display = 'none';
 
     tbody.innerHTML = filtered.map(client => `
-      <tr>
+      <tr class="tr-clickable" onclick="window.location.href='/accounts/clients/${client.id}/'">
         <td>
           <div class="client-name">${this.escapeHtml(client.name)}</div>
           ${client.company
@@ -113,7 +113,7 @@ class ClientsManager {
         <td class="td-muted">${UIManager.formatCurrency(client.total_earnings || 0)}</td>
         <td class="td-muted td-date">${UIManager.formatDate(client.created_at)}</td>
         <td>
-          <div class="td-actions">
+          <div class="td-actions" onclick="event.stopPropagation()">
             <button class="btn btn-outline btn-sm"
               onclick="clientsManager.openEditModal(${client.id})">
               Upravit
@@ -143,11 +143,12 @@ class ClientsManager {
     document.getElementById('modalTitle').textContent = 'Upravit klienta';
     FormHelper.clear(document.getElementById('clientForm'));
     FormHelper.populate(document.getElementById('clientForm'), {
-      name:    client.name,
-      email:   client.email,
-      company: client.company || '',
-      phone:   client.phone   || '',
-      notes:   client.notes   || '',
+      name:         client.name,
+      email:        client.email,
+      company:      client.company    || '',
+      phone:        client.phone      || '',
+      notes:        client.notes      || '',
+      hourly_rate:  client.hourly_rate || 0,
     });
     UIManager.modal.open('clientModal');
     setTimeout(() => document.getElementById('clientName').focus(), 80);

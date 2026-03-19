@@ -163,10 +163,10 @@ class ProjectsManager {
       const deadline = new Date(project.end_date);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      const isOverdue = project.end_date && deadline < today && project.status !== 'completed' && project.status !== 'cancelled';
+      const isOverdue = project.end_date && deadline < today && project.status !== 'completed' && project.status !== 'cancelled' && project.status !== 'archived';
 
       return `
-        <tr${isOverdue ? ' class="tr-overdue"' : ''}>
+        <tr${isOverdue ? ' class="tr-overdue tr-clickable"' : ' class="tr-clickable"'} onclick="window.location.href='/accounts/projects/${project.id}/'">
           <td>
             <span class="project-name">${this.escapeHtml(project.name)}</span>
             ${isOverdue ? '<div class="project-overdue">Po termínu</div>' : ''}
@@ -179,7 +179,17 @@ class ProjectsManager {
           </td>
           <td>${UIManager.formatCurrency(project.budget)}</td>
           <td>
-            <div class="td-actions">
+            ${project.estimated_hours > 0 ? `
+              <span style="font-size:.8rem;color:var(--text-muted)">${Math.round(project.progress || 0)}&thinsp;%</span>
+              <div class="progress-bar-wrap">
+                <div class="progress-bar-fill${(project.progress || 0) >= 100 ? ' over' : (project.progress || 0) >= 80 ? ' warn' : ''}"
+                     style="width:${Math.min(100, Math.round(project.progress || 0))}%"></div>
+              </div>
+            ` : '<span style="color:var(--text-muted)">—</span>'}
+          </td>
+          <td class="td-muted">${project.earnings != null && project.earnings > 0 ? UIManager.formatCurrency(project.earnings) : '<span style="color:var(--text-muted)">—</span>'}</td>
+          <td>
+            <div class="td-actions" onclick="event.stopPropagation()">
               <button class="btn btn-outline btn-sm" onclick="projectsManager.openEditModal(${project.id})">Upravit</button>
               <button class="btn btn-danger-soft btn-sm" onclick="projectsManager.confirmDelete(${project.id})">Smazat</button>
             </div>
@@ -212,6 +222,7 @@ class ProjectsManager {
         status: project.status,
         budget: project.budget,
         estimated_hours: project.estimated_hours,
+        hourly_rate: project.hourly_rate || 0,
         start_date: project.start_date || '',
         end_date: project.end_date || '',
       });
@@ -228,6 +239,7 @@ class ProjectsManager {
     // Convert string values to proper types
     data.budget = data.budget ? parseFloat(data.budget) : 0;
     data.estimated_hours = data.estimated_hours ? parseFloat(data.estimated_hours) : 0;
+    data.hourly_rate = data.hourly_rate ? parseFloat(data.hourly_rate) : 0;
     data.client = parseInt(data.client);
 
     // DRF DateField rejects empty strings – send null instead

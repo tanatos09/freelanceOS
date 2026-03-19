@@ -38,6 +38,7 @@ class ClientDetailSerializer(serializers.ModelSerializer):
             "phone",
             "company",
             "notes",
+            "hourly_rate",
             "total_earnings",
             "project_count",
             "created_at",
@@ -57,7 +58,7 @@ class ClientCreateUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Client
-        fields = ("name", "email", "phone", "company", "notes")
+        fields = ("name", "email", "phone", "company", "notes", "hourly_rate")
 
     def validate_email(self, value):
         """Zkontroluj, že email je unikátní pro daného uživatele."""

@@ -13,6 +13,13 @@
   </div>
 </div>
 
+<!-- ── Range toggle ──────────────────────── -->
+<div class="range-toggle-wrap">
+  <button class="range-btn range-btn--active" data-range="today">Dnes</button>
+  <button class="range-btn" data-range="week">Týden</button>
+  <button class="range-btn" data-range="month">Měsíc</button>
+</div>
+
 <!-- ── Stat cards ─────────────────────────── -->
 <div class="dash-grid">
 
@@ -52,10 +59,10 @@
     <div class="dash-card-note" id="overdueNote"></div>
   </div>
 
-  <!-- Odpracováno dnes -->
+  <!-- Odpracováno -->
   <div class="dash-card dash-card--success">
     <div class="dash-card-top">
-      <span class="dash-card-label">Odpracováno dnes</span>
+      <span class="dash-card-label" id="hoursLabel">Odpracováno dnes</span>
       <span class="dash-card-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <circle cx="12" cy="12" r="10"/>
@@ -63,7 +70,7 @@
         </svg>
       </span>
     </div>
-    <div class="dash-card-value" id="todayHours">
+    <div class="dash-card-value" id="hoursWorked">
       <span class="stat-skeleton"></span>
     </div>
     <div class="dash-card-note">
@@ -90,6 +97,23 @@
     <div class="dash-card-note">
       <a href="/accounts/clients/">Zobrazit klienty →</a>
     </div>
+  </div>
+
+  <!-- Výdělek -->
+  <div class="dash-card dash-card--success">
+    <div class="dash-card-top">
+      <span class="dash-card-label" id="earningsLabel">Výdělek dnes</span>
+      <span class="dash-card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <line x1="12" y1="1" x2="12" y2="23"/>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      </span>
+    </div>
+    <div class="dash-card-value" id="totalEarnings">
+      <span class="stat-skeleton"></span>
+    </div>
+    <div class="dash-card-note" id="earningsNote">Dnes</div>
   </div>
 
 </div><!-- /.dash-grid -->
@@ -207,37 +231,58 @@
     setText('greeting', 'Vítejte zpět!');
   }
 
-  /* ── stat cards ── */
-  window.api.dashboard.stats()
-    .then(function (stats) {
-      setText('activeProjectsCount', stats.active_projects_count ?? 0);
-      setText('clientsCount',        stats.clients_count          ?? 0);
+  /* ── range toggle ── */
+  var RANGE_LABELS = {
+    today: { hours: 'Odpracováno dnes',   earnings: 'Výdělek dnes',    note: 'Dnes' },
+    week:  { hours: 'Odpracováno tento týden', earnings: 'Výdělek tento týden', note: 'Tento týden' },
+    month: { hours: 'Odpracováno tento měsíc', earnings: 'Výdělek tento měsíc', note: 'Tento měsíc' },
+  };
+  var currentRange = 'today';
 
-      var overdue = stats.overdue_projects_count ?? 0;
-      setText('overdueCount', overdue);
-      setHtml('overdueNote', overdue === 0
-        ? '<span style="color:var(--success)">Vše v pořádku 🎉</span>'
-        : '<a href="/accounts/projects/">Zobrazit zpožděné →</a>');
-    })
-    .catch(function () {
-      ['activeProjectsCount', 'overdueCount', 'clientsCount'].forEach(function (id) {
-        setText(id, '—');
-      });
+  document.querySelectorAll('.range-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.range-btn').forEach(function (b) { b.classList.remove('range-btn--active'); });
+      btn.classList.add('range-btn--active');
+      currentRange = btn.dataset.range;
+      loadStats(currentRange);
     });
+  });
 
-  /* ── today's hours ── */
-  var today = new Date().toISOString().split('T')[0];
-  window.api.workcommits.list({ date: today })
-    .then(function (commits) {
-      var secs = commits
-        .filter(function (c) { return c.end_time; })
-        .reduce(function (sum, c) { return sum + c.duration_seconds; }, 0);
-      setText('todayHours', secs === 0 ? '0h' : fmtHours(secs));
-    })
-    .catch(function () { setText('todayHours', '—'); });
+  function fmtEarnings(val) {
+    return parseFloat(val || 0).toLocaleString('cs-CZ', { style: 'currency', currency: 'CZK', minimumFractionDigits: 0 });
+  }
+
+  /* ── stat cards ── */
+  function loadStats(range) {
+    var labels = RANGE_LABELS[range] || RANGE_LABELS.today;
+    setText('hoursLabel',   labels.hours);
+    setText('earningsLabel', labels.earnings);
+    setText('earningsNote',  labels.note);
+
+    window.api.dashboard.stats(range)
+      .then(function (stats) {
+        setText('activeProjectsCount', stats.active_projects_count ?? 0);
+        setText('clientsCount',        stats.clients_count          ?? 0);
+        setText('totalEarnings',       fmtEarnings(stats.earnings));
+        setText('hoursWorked',         stats.hours_worked === 0 ? '0h' : fmtHours(Math.round((stats.hours_worked || 0) * 3600)));
+
+        var overdue = stats.overdue_projects_count ?? 0;
+        setText('overdueCount', overdue);
+        setHtml('overdueNote', overdue === 0
+          ? '<span style="color:var(--success)">Vše v pořádku 🎉</span>'
+          : '<a href="/accounts/projects/">Zobrazit zpožděné →</a>');
+      })
+      .catch(function () {
+        ['activeProjectsCount', 'overdueCount', 'clientsCount', 'totalEarnings', 'hoursWorked'].forEach(function (id) {
+          setText(id, '—');
+        });
+      });
+  }
+
+  loadStats(currentRange);
 
   /* ── recent activity ── */
-  (function loadActivity() {
+  function loadActivity(highlight) {
     var since = new Date();
     since.setDate(since.getDate() - 6);
     var dateFrom = since.toISOString().split('T')[0];
@@ -245,12 +290,16 @@
     window.api.workcommits.list({ date_from: dateFrom })
       .then(function (commits) {
         var finished = (commits || []).filter(function (c) { return c.end_time; });
-        renderActivity(finished);
+        renderActivity(finished, highlight);
       })
       .catch(function () { renderActivity([]); });
-  }());
+  }
+  window.refreshActivity = loadActivity;
+  loadActivity();
 
-  function renderActivity(commits) {
+  window.addEventListener('workcommit:saved', function () { loadActivity(true); });
+
+  function renderActivity(commits, highlight) {
     var feed = document.getElementById('activityFeed');
     if (!feed) return;
 
@@ -294,10 +343,11 @@
       html += '<div class="activity-day-group">';
       html += '<div class="activity-day-label">' + dayLabel(key) + '</div>';
       html += '<ul class="activity-list">';
+      var isToday = (key === todayKey);
       g.items.forEach(function (c) {
         var dur  = fmtDur(c.duration_seconds || 0);
         var desc = c.description ? esc(c.description) : '<em class="activity-no-desc">bez popisu</em>';
-        html += '<li class="activity-item">';
+        html += '<li class="activity-item' + (highlight && isToday ? ' activity-item--new' : '') + '">';
         html += '<span class="activity-dot"></span>';
         html += '<div class="activity-body">';
         html += '<span class="activity-project">' + esc(c.project_name || '—') + '</span>';

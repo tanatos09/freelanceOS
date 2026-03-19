@@ -94,6 +94,8 @@ class UIManager {
     const labels = {
       draft: 'Návrh',
       active: 'Aktivní',
+      paused: 'Pozastaveno',
+      pending_payment: 'Čeká na platbu',
       completed: 'Hotovo',
       archived: 'Archivováno',
       cancelled: 'Zrušeno',

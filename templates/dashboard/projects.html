@@ -52,6 +52,8 @@
         <th>Status</th>
         <th>Deadline</th>
         <th>Rozpočet</th>
+        <th>Postup</th>
+        <th>Výdělek</th>
         <th></th>
       </tr>
     </thead>
@@ -109,6 +111,8 @@
           <select id="projectStatus" name="status">
             <option value="draft">Návrh</option>
             <option value="active">Aktivní</option>
+            <option value="paused">Pozastaveno</option>
+            <option value="pending_payment">Čeká na platbu</option>
             <option value="completed">Hotovo</option>
             <option value="archived">Archivováno</option>
             <option value="cancelled">Zrušeno</option>
@@ -129,6 +133,10 @@
         <div class="form-group">
           <label for="projectHours">Odhadnuté hodiny</label>
           <input type="number" id="projectHours" name="estimated_hours" step="0.5" min="0" value="0" />
+        </div>
+        <div class="form-group">
+          <label for="projectHourlyRate">Hodinová sazba (Kč/h)</label>
+          <input type="number" id="projectHourlyRate" name="hourly_rate" step="0.01" min="0" value="0" placeholder="0 = použije sazbu klienta" />
         </div>
       </div>
 

@@ -145,6 +145,8 @@ class SidebarTimer {
       if (typeof UIManager !== 'undefined') {
         UIManager.success(this.runningCommit ? 'Commit uložen.' : 'Timer zastaven.');
       }
+
+      window.dispatchEvent(new CustomEvent('workcommit:saved'));
     } catch (err) {
       console.error('[SidebarTimer]', err);
       if (typeof UIManager !== 'undefined') {

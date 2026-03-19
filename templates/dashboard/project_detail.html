@@ -1,0 +1,305 @@
+{% extends "layouts/base.html" %}
+{% block title %}Detail projektu – FreelanceOS{% endblock %}
+
+{% block breadcrumb %}<a href="/accounts/projects/">Projekty</a> / <span id="breadcrumbName">…</span>{% endblock %}
+
+{% block content %}
+
+<!-- Page header -->
+<div class="page-header">
+  <div style="display:flex;align-items:center;gap:.75rem">
+    <a href="/accounts/projects/" class="btn btn-outline btn-sm" aria-label="Zpět">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+    </a>
+    <div>
+      <h1 class="page-title" id="projectName"><span class="stat-skeleton" style="width:180px;display:inline-block"></span></h1>
+      <p class="page-sub" id="projectMeta"></p>
+    </div>
+  </div>
+  <span id="projectStatusBadge"></span>
+</div>
+
+<!-- ── Info cards ─────────────────────────── -->
+<div class="dash-grid" style="margin-bottom:2rem">
+
+  <div class="dash-card">
+    <div class="dash-card-top">
+      <span class="dash-card-label">Rozpočet</span>
+    </div>
+    <div class="dash-card-value" id="cardBudget">
+      <span class="stat-skeleton"></span>
+    </div>
+    <div class="dash-card-note" id="cardHourlyRate"></div>
+  </div>
+
+  <div class="dash-card dash-card--accent">
+    <div class="dash-card-top">
+      <span class="dash-card-label">Odhadnuté hodiny</span>
+    </div>
+    <div class="dash-card-value" id="cardEstimated">
+      <span class="stat-skeleton"></span>
+    </div>
+    <div class="dash-card-note" id="cardProgress"></div>
+  </div>
+
+  <div class="dash-card dash-card--success">
+    <div class="dash-card-top">
+      <span class="dash-card-label">Odpracováno</span>
+    </div>
+    <div class="dash-card-value" id="cardActual">
+      <span class="stat-skeleton"></span>
+    </div>
+    <div class="dash-card-note" id="cardDeadline"></div>
+  </div>
+
+  <div class="dash-card">
+    <div class="dash-card-top">
+      <span class="dash-card-label">Výdělek</span>
+    </div>
+    <div class="dash-card-value" id="cardEarnings">
+      <span class="stat-skeleton"></span>
+    </div>
+    <div class="dash-card-note" id="cardEffRate"></div>
+  </div>
+
+</div>
+
+<!-- ── Progress bar ───────────────────────── -->
+<div id="progressSection" class="dash-section" style="display:none;margin-bottom:2rem">
+  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.5rem">
+    <span style="font-size:.85rem;color:var(--text-secondary)">Průběh projektu</span>
+    <span id="progressLabel" style="font-size:.85rem;font-weight:600;color:var(--text-primary)"></span>
+  </div>
+  <div style="background:var(--border-color);border-radius:999px;height:8px;overflow:hidden">
+    <div id="progressBar" style="height:100%;background:var(--accent);border-radius:999px;transition:width .4s ease;width:0%"></div>
+  </div>
+</div>
+
+<!-- ── Work commits timeline ──────────────── -->
+<div class="dash-section">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
+    <h2 class="dash-section-title" style="margin:0">Work commity</h2>
+    <span id="commitsTotal" style="font-size:.85rem;color:var(--text-muted)"></span>
+  </div>
+
+  <div id="commitsTimeline">
+    <!-- skeleton -->
+    <div class="activity-day-group">
+      <div class="activity-day-label"><span class="row-skeleton" style="width:60px"></span></div>
+      <ul class="activity-list">
+        <li class="activity-item">
+          <span class="activity-dot"></span>
+          <div class="activity-body">
+            <span class="row-skeleton" style="width:200px"></span>
+            <span class="row-skeleton" style="width:120px;margin-top:4px"></span>
+          </div>
+          <span class="row-skeleton" style="width:44px;height:22px;border-radius:4px"></span>
+        </li>
+        <li class="activity-item">
+          <span class="activity-dot"></span>
+          <div class="activity-body">
+            <span class="row-skeleton" style="width:160px"></span>
+            <span class="row-skeleton" style="width:100px;margin-top:4px"></span>
+          </div>
+          <span class="row-skeleton" style="width:44px;height:22px;border-radius:4px"></span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="commitsEmpty" class="empty-state" style="display:none">
+    <div class="empty-state-icon">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+    </div>
+    <div class="empty-state-title">Žádné work commity</div>
+    <div class="empty-state-text">Spusťte timer a začněte trackovat čas na tomto projektu.</div>
+    <a href="/accounts/timer/" class="btn btn-primary">Spustit timer</a>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  'use strict';
+
+  const STATUS_LABELS = {
+    draft: 'Návrh', active: 'Aktivní', completed: 'Hotovo',
+    archived: 'Archivováno', cancelled: 'Zrušeno',
+  };
+  const STATUS_CLASSES = {
+    draft: 'badge-muted', active: 'badge-active', completed: 'badge-success',
+    archived: 'badge-muted', cancelled: 'badge-danger',
+  };
+
+  function esc(t) {
+    if (!t) return '';
+    const d = document.createElement('div');
+    d.textContent = t;
+    return d.innerHTML;
+  }
+  function setText(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  }
+  function setHtml(id, html) {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+  }
+  function fmtCurrency(v) {
+    return parseFloat(v || 0).toLocaleString('cs-CZ', { style: 'currency', currency: 'CZK', minimumFractionDigits: 0 });
+  }
+  function fmtHours(h) {
+    const n = parseFloat(h || 0);
+    if (n === 0) return '0 h';
+    if (n < 1) return Math.round(n * 60) + ' min';
+    return n.toFixed(1).replace('.0', '') + ' h';
+  }
+  function fmtDate(v) {
+    if (!v) return '—';
+    return new Date(v).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+  function fmtTime(v) {
+    if (!v) return '';
+    return new Date(v).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+  }
+  function fmtDuration(secs) {
+    if (!secs) return '0 min';
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    if (h === 0) return m + ' min';
+    if (m === 0) return h + ' h';
+    return h + ' h ' + m + ' min';
+  }
+
+  // Extract project ID from URL: /accounts/projects/42/
+  const match = window.location.pathname.match(/\/projects\/(\d+)\/?/);
+  if (!match) return;
+  const projectId = parseInt(match[1], 10);
+
+  // ── Load project detail ───────────────────
+  window.api.projects.get(projectId)
+    .then(function (p) {
+      setText('projectName', p.name);
+      setText('breadcrumbName', p.name);
+      document.title = p.name + ' – FreelanceOS';
+
+      const meta = p.client_name ? 'Klient: ' + p.client_name : '';
+      setText('projectMeta', meta);
+
+      setHtml('projectStatusBadge',
+        `<span class="badge ${STATUS_CLASSES[p.status] || 'badge-muted'}">${esc(STATUS_LABELS[p.status] || p.status)}</span>`);
+
+      setText('cardBudget', fmtCurrency(p.budget));
+      if (p.hourly_rate > 0) {
+        setText('cardHourlyRate', fmtCurrency(p.hourly_rate) + '/h');
+      }
+
+      setText('cardEstimated', fmtHours(p.estimated_hours));
+
+      const actual = parseFloat(p.actual_hours || 0);
+      const estimated = parseFloat(p.estimated_hours || 0);
+      setText('cardActual', fmtHours(actual));
+
+      if (p.end_date) {
+        const days = p.days_until_deadline;
+        const txt = days == null ? '' : days < 0
+          ? `<span style="color:var(--danger)">Po termínu ${Math.abs(days)} dní</span>`
+          : `Deadline za ${days} dní`;
+        setHtml('cardDeadline', fmtDate(p.end_date) + (txt ? '<br>' + txt : ''));
+      }
+
+      const earnings = parseFloat(p.earnings || 0);
+      setText('cardEarnings', earnings > 0 ? fmtCurrency(earnings) : '—');
+      if (p.effective_hourly_rate > 0) {
+        setText('cardEffRate', 'sazba ' + fmtCurrency(p.effective_hourly_rate) + '/h');
+      }
+
+      // Progress bar
+      if (estimated > 0) {
+        const pct = Math.min(100, Math.round((actual / estimated) * 100));
+        const sec = document.getElementById('progressSection');
+        if (sec) sec.style.display = '';
+        setText('progressLabel', pct + '%');
+        const bar = document.getElementById('progressBar');
+        if (bar) {
+          bar.style.width = pct + '%';
+          if (pct >= 100) bar.style.background = 'var(--danger)';
+          else if (pct >= 80) bar.style.background = 'var(--warning, #f59e0b)';
+        }
+      }
+    })
+    .catch(function () {
+      setText('projectName', 'Projekt nenalezen');
+    });
+
+  // ── Load work commits ─────────────────────
+  window.api.workcommits.list({ project: projectId })
+    .then(function (commits) {
+      const timeline = document.getElementById('commitsTimeline');
+      const empty = document.getElementById('commitsEmpty');
+
+      const finished = (commits || []).filter(c => c.end_time);
+
+      if (finished.length === 0) {
+        timeline.style.display = 'none';
+        if (empty) empty.style.display = 'block';
+        return;
+      }
+
+      const totalSecs = finished.reduce((s, c) => s + (c.duration_seconds || 0), 0);
+      setText('commitsTotal', finished.length + ' commitů · ' + fmtDuration(totalSecs));
+
+      // Group by date (newest first – API already orders by -start_time)
+      const groups = {};
+      finished.forEach(function (c) {
+        const day = new Date(c.start_time).toLocaleDateString('cs-CZ', {
+          weekday: 'short', day: 'numeric', month: 'long', year: 'numeric',
+        });
+        if (!groups[day]) groups[day] = [];
+        groups[day].push(c);
+      });
+
+      timeline.innerHTML = Object.entries(groups).map(function ([day, items]) {
+        const rows = items.map(function (c) {
+          const isRunning = !c.end_time;
+          const dotStyle = isRunning ? 'background:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.2)' : '';
+          return `
+            <li class="activity-item">
+              <span class="activity-dot" style="${dotStyle}"></span>
+              <div class="activity-body">
+                <div style="font-size:.9rem;font-weight:500;color:var(--text-primary)">
+                  ${c.description ? esc(c.description) : '<span style="color:var(--text-muted);font-style:italic">Bez popisu</span>'}
+                </div>
+                <div style="font-size:.8rem;color:var(--text-muted);margin-top:2px">
+                  ${fmtTime(c.start_time)}${c.end_time ? ' – ' + fmtTime(c.end_time) : ''}
+                  ${isRunning ? '<span class="badge badge-active" style="margin-left:.5rem;font-size:.7rem">běží</span>' : ''}
+                </div>
+              </div>
+              <span style="font-size:.8rem;font-weight:600;color:var(--text-secondary);white-space:nowrap">
+                ${fmtDuration(c.duration_seconds)}
+              </span>
+            </li>`;
+        }).join('');
+        return `
+          <div class="activity-day-group">
+            <div class="activity-day-label">${esc(day)}</div>
+            <ul class="activity-list">${rows}</ul>
+          </div>`;
+      }).join('');
+    })
+    .catch(function () {
+      const timeline = document.getElementById('commitsTimeline');
+      if (timeline) timeline.innerHTML =
+        '<p style="color:var(--danger);padding:1rem 0">Chyba při načítání commitů</p>';
+    });
+
+}());
+</script>
+{% endblock %}

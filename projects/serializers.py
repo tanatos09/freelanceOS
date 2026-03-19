@@ -11,6 +11,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
     days_until_deadline = serializers.SerializerMethodField()
     progress = serializers.SerializerMethodField()
     status_display = serializers.CharField(source="get_status_display", read_only=True)
+    earnings = serializers.SerializerMethodField()
 
     class Meta:
         model = Project
@@ -23,11 +24,13 @@ class ProjectListSerializer(serializers.ModelSerializer):
             "status_display",
             "budget",
             "estimated_hours",
+            "hourly_rate",
             "start_date",
             "end_date",
             "is_overdue",
             "days_until_deadline",
             "progress",
+            "earnings",
             "created_at",
         )
         read_only_fields = (
@@ -35,6 +38,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
             "is_overdue",
             "days_until_deadline",
             "progress",
+            "earnings",
             "created_at",
         )
 
@@ -47,6 +51,9 @@ class ProjectListSerializer(serializers.ModelSerializer):
     def get_progress(self, obj):
         return obj.progress_percent()
 
+    def get_earnings(self, obj):
+        return obj.earnings()
+
 
 class ProjectDetailSerializer(serializers.ModelSerializer):
     """Podrobný detail projektu."""
@@ -56,7 +63,8 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
     days_until_deadline = serializers.SerializerMethodField()
     progress = serializers.SerializerMethodField()
     actual_hours = serializers.SerializerMethodField()
-    hourly_rate = serializers.SerializerMethodField()
+    effective_hourly_rate = serializers.SerializerMethodField()
+    earnings = serializers.SerializerMethodField()
     status_display = serializers.CharField(source="get_status_display", read_only=True)
 
     class Meta:
@@ -71,13 +79,15 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
             "status_display",
             "budget",
             "estimated_hours",
+            "hourly_rate",
             "start_date",
             "end_date",
             "is_overdue",
             "days_until_deadline",
             "progress",
             "actual_hours",
-            "hourly_rate",
+            "effective_hourly_rate",
+            "earnings",
             "created_at",
             "updated_at",
         )
@@ -87,7 +97,8 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
             "days_until_deadline",
             "progress",
             "actual_hours",
-            "hourly_rate",
+            "effective_hourly_rate",
+            "earnings",
             "created_at",
             "updated_at",
         )
@@ -104,8 +115,11 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
     def get_actual_hours(self, obj):
         return obj.actual_hours()
 
-    def get_hourly_rate(self, obj):
-        return obj.hourly_rate()
+    def get_effective_hourly_rate(self, obj):
+        return obj.effective_hourly_rate()
+
+    def get_earnings(self, obj):
+        return obj.earnings()
 
 
 class ProjectCreateUpdateSerializer(serializers.ModelSerializer):
@@ -124,6 +138,7 @@ class ProjectCreateUpdateSerializer(serializers.ModelSerializer):
             "status",
             "budget",
             "estimated_hours",
+            "hourly_rate",
             "start_date",
             "end_date",
         )

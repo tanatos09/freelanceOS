@@ -21,6 +21,7 @@ class APIClient {
       update: (id, data) => this.put(`/clients/${id}/`, data),
       delete: (id) => this.delete(`/clients/${id}/`),
       stats: (id) => this.get(`/clients/${id}/stats/`),
+      projects: (id) => this.get(`/clients/${id}/projects/`),
     };
 
     this.projects = {
@@ -49,7 +50,7 @@ class APIClient {
     };
 
     this.dashboard = {
-      stats: () => this.get('/dashboard/stats/'),
+      stats: (range) => this.get('/dashboard/stats/' + (range ? '?range=' + range : '')),
     };
   }
 

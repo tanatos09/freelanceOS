@@ -12,6 +12,8 @@ class Project(models.Model):
     STATUS_CHOICES = [
         ("draft", "Návrh"),
         ("active", "Aktivní"),
+        ("paused", "Pozastaveno"),
+        ("pending_payment", "Čeká na platbu"),
         ("completed", "Hotovo"),
         ("archived", "Archivováno"),
         ("cancelled", "Zrušeno"),
@@ -52,6 +54,9 @@ class Project(models.Model):
     )
     estimated_hours = models.DecimalField(
         max_digits=8, decimal_places=2, default=0, help_text="Odhadnuté hodiny"
+    )
+    hourly_rate = models.DecimalField(
+        max_digits=8, decimal_places=2, default=0, help_text="Hodinová sazba (0 = fallback na klienta)"
     )
 
     # Dates
@@ -115,8 +120,18 @@ class Project(models.Model):
             # Timetracking aplikace ainda není k dispozici
             return 0
 
-    def hourly_rate(self):
-        """Vypočtená hodinová sazba (rozpočet / odhad hodin)."""
-        if not self.estimated_hours or self.estimated_hours == 0:
-            return 0
-        return round(float(self.budget) / float(self.estimated_hours), 2)
+    def effective_hourly_rate(self):
+        """Efektivní hodinová sazba – projektová, nebo fallback na klienta."""
+        if self.hourly_rate and self.hourly_rate > 0:
+            return float(self.hourly_rate)
+        try:
+            client_rate = float(self.client.hourly_rate)
+            if client_rate > 0:
+                return client_rate
+        except Exception:
+            pass
+        return 0
+
+    def earnings(self):
+        """Výdělek = odpracované hodiny × efektivní sazba."""
+        return round(self.actual_hours() * self.effective_hourly_rate(), 2)

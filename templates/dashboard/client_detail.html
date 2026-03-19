@@ -1,0 +1,250 @@
+{% extends "layouts/base.html" %}
+{% block title %}Detail klienta – FreelanceOS{% endblock %}
+
+{% block breadcrumb %}<a href="/accounts/clients/">Klienti</a> / <span id="breadcrumbName">…</span>{% endblock %}
+
+{% block content %}
+
+<!-- Page header -->
+<div class="page-header">
+  <div style="display:flex;align-items:center;gap:.75rem">
+    <a href="/accounts/clients/" class="btn btn-outline btn-sm" aria-label="Zpět">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+    </a>
+    <div>
+      <h1 class="page-title" id="clientName"><span class="stat-skeleton" style="width:160px;display:inline-block"></span></h1>
+      <p class="page-sub" id="clientMeta"></p>
+    </div>
+  </div>
+  <button class="btn btn-outline" id="editClientBtn" style="display:none">Upravit</button>
+</div>
+
+<!-- ── Info cards ─────────────────────────── -->
+<div class="dash-grid" id="infoCards" style="margin-bottom:2rem">
+
+  <div class="dash-card">
+    <div class="dash-card-top">
+      <span class="dash-card-label">Email</span>
+    </div>
+    <div class="dash-card-value" id="cardEmail" style="font-size:1rem;word-break:break-all">
+      <span class="stat-skeleton" style="width:140px"></span>
+    </div>
+  </div>
+
+  <div class="dash-card">
+    <div class="dash-card-top">
+      <span class="dash-card-label">Telefon</span>
+    </div>
+    <div class="dash-card-value" id="cardPhone" style="font-size:1rem">
+      <span class="stat-skeleton" style="width:100px"></span>
+    </div>
+  </div>
+
+  <div class="dash-card dash-card--accent">
+    <div class="dash-card-top">
+      <span class="dash-card-label">Projektů celkem</span>
+    </div>
+    <div class="dash-card-value" id="cardProjectCount">
+      <span class="stat-skeleton"></span>
+    </div>
+  </div>
+
+  <div class="dash-card dash-card--success">
+    <div class="dash-card-top">
+      <span class="dash-card-label">Celkové tržby</span>
+    </div>
+    <div class="dash-card-value" id="cardEarnings">
+      <span class="stat-skeleton"></span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Notes ──────────────────────────────── -->
+<div class="dash-section" id="notesSection" style="display:none">
+  <h2 class="dash-section-title">Poznámky</h2>
+  <div class="dash-card">
+    <p id="clientNotes" style="margin:0;color:var(--text-secondary);white-space:pre-wrap"></p>
+  </div>
+</div>
+
+<!-- ── Projects ───────────────────────────── -->
+<div class="dash-section">
+  <h2 class="dash-section-title">Projekty</h2>
+
+  <div class="table-wrap" id="projectsTableWrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Název</th>
+          <th>Status</th>
+          <th>Deadline</th>
+          <th>Hodinová sazba</th>
+          <th>Výdělek</th>
+        </tr>
+      </thead>
+      <tbody id="projectsTbody">
+        <tr class="skeleton-row">
+          <td><span class="row-skeleton" style="width:150px"></span></td>
+          <td><span class="row-skeleton" style="width:70px"></span></td>
+          <td><span class="row-skeleton" style="width:90px"></span></td>
+          <td><span class="row-skeleton" style="width:70px"></span></td>
+          <td><span class="row-skeleton" style="width:70px"></span></td>
+        </tr>
+        <tr class="skeleton-row">
+          <td><span class="row-skeleton" style="width:120px"></span></td>
+          <td><span class="row-skeleton" style="width:70px"></span></td>
+          <td><span class="row-skeleton" style="width:90px"></span></td>
+          <td><span class="row-skeleton" style="width:70px"></span></td>
+          <td><span class="row-skeleton" style="width:70px"></span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div id="projectsEmpty" class="empty-state" style="display:none">
+    <div class="empty-state-icon">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+      </svg>
+    </div>
+    <div class="empty-state-title">Žádné projekty</div>
+    <div class="empty-state-text">Tento klient zatím nemá žádné projekty.</div>
+    <a href="/accounts/projects/" class="btn btn-primary">Přidat projekt</a>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  'use strict';
+
+  const STATUS_LABELS = {
+    draft: 'Návrh',
+    active: 'Aktivní',
+    completed: 'Hotovo',
+    archived: 'Archivováno',
+    cancelled: 'Zrušeno',
+  };
+  const STATUS_CLASSES = {
+    draft: 'badge-muted',
+    active: 'badge-active',
+    completed: 'badge-success',
+    archived: 'badge-muted',
+    cancelled: 'badge-danger',
+  };
+
+  function esc(text) {
+    if (!text) return '';
+    const d = document.createElement('div');
+    d.textContent = text;
+    return d.innerHTML;
+  }
+
+  function setText(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  }
+
+  function fmtCurrency(val) {
+    return parseFloat(val || 0).toLocaleString('cs-CZ', {
+      style: 'currency', currency: 'CZK', minimumFractionDigits: 0,
+    });
+  }
+
+  function fmtDate(val) {
+    if (!val) return '—';
+    const d = new Date(val);
+    return d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  function statusBadge(status) {
+    const cls = STATUS_CLASSES[status] || 'badge-muted';
+    const lbl = STATUS_LABELS[status] || status;
+    return `<span class="badge ${cls}">${esc(lbl)}</span>`;
+  }
+
+  // Extract client ID from URL: /accounts/clients/42/
+  const match = window.location.pathname.match(/\/clients\/(\d+)\/?/);
+  if (!match) return;
+  const clientId = parseInt(match[1], 10);
+
+  // ── Load client detail ────────────────────
+  window.api.clients.get(clientId)
+    .then(function (c) {
+      setText('clientName', c.name);
+      setText('breadcrumbName', c.name);
+      document.title = c.name + ' – FreelanceOS';
+
+      const meta = [c.company, c.phone].filter(Boolean).join(' · ');
+      setText('clientMeta', meta || '');
+
+      const emailEl = document.getElementById('cardEmail');
+      if (emailEl) emailEl.innerHTML = `<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>`;
+
+      const phoneEl = document.getElementById('cardPhone');
+      if (phoneEl) phoneEl.textContent = c.phone || '—';
+
+      setText('cardProjectCount', c.project_count ?? 0);
+      setText('cardEarnings', fmtCurrency(c.total_earnings));
+
+      if (c.notes) {
+        const sec = document.getElementById('notesSection');
+        const notesEl = document.getElementById('clientNotes');
+        if (sec) sec.style.display = '';
+        if (notesEl) notesEl.textContent = c.notes;
+      }
+
+      // Show edit button
+      const editBtn = document.getElementById('editClientBtn');
+      if (editBtn) {
+        editBtn.style.display = '';
+        editBtn.addEventListener('click', function () {
+          window.location.href = '/accounts/clients/?edit=' + clientId;
+        });
+      }
+    })
+    .catch(function () {
+      setText('clientName', 'Klient nenalezen');
+    });
+
+  // ── Load projects ─────────────────────────
+  window.api.clients.projects(clientId)
+    .then(function (projects) {
+      const tbody = document.getElementById('projectsTbody');
+      const tableWrap = document.getElementById('projectsTableWrap');
+      const empty = document.getElementById('projectsEmpty');
+
+      if (!projects || projects.length === 0) {
+        if (tableWrap) tableWrap.style.display = 'none';
+        if (empty) empty.style.display = 'block';
+        return;
+      }
+
+      if (tableWrap) tableWrap.style.display = '';
+      if (empty) empty.style.display = 'none';
+
+      tbody.innerHTML = projects.map(function (p) {
+        const rate = parseFloat(p.hourly_rate || 0);
+        const earnings = parseFloat(p.earnings || 0);
+        return `<tr>
+          <td><span class="project-name">${esc(p.name)}</span></td>
+          <td>${statusBadge(p.status)}</td>
+          <td class="td-muted">${fmtDate(p.end_date)}</td>
+          <td class="td-muted">${rate > 0 ? fmtCurrency(rate) + '/h' : '<span style="color:var(--text-muted)">—</span>'}</td>
+          <td class="td-muted">${earnings > 0 ? fmtCurrency(earnings) : '<span style="color:var(--text-muted)">—</span>'}</td>
+        </tr>`;
+      }).join('');
+    })
+    .catch(function () {
+      const tbody = document.getElementById('projectsTbody');
+      if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--danger);padding:2rem">Chyba při načítání projektů</td></tr>';
+    });
+
+}());
+</script>
+{% endblock %}

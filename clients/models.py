@@ -32,6 +32,11 @@ class Client(models.Model):
         max_length=255, blank=True, help_text="Název společnosti (pokud se liší od name)"
     )
 
+    # Rates
+    hourly_rate = models.DecimalField(
+        max_digits=8, decimal_places=2, default=0, help_text="Výchozí hodinová sazba pro klienta"
+    )
+
     # Metadata
     notes = models.TextField(blank=True, help_text="Interní poznámky (není vidět klientovi)")
 
