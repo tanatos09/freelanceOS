@@ -122,4 +122,3 @@ class TestSoftDeleteModelLogic:
         instance = SoftDeleteModel.__new__(SoftDeleteModel)
         instance.deleted_at = timezone.now()
         assert instance.is_deleted is True
-

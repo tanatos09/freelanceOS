@@ -85,7 +85,14 @@ class TestWorkCommitListEndpoint:
         response = auth_client.get("/api/v1/workcommits/")
         assert response.status_code == status.HTTP_200_OK
         item = response.data[0]
-        for field in ["id", "project", "project_name", "is_running", "duration_hours", "elapsed_seconds"]:
+        for field in [
+            "id",
+            "project",
+            "project_name",
+            "is_running",
+            "duration_hours",
+            "elapsed_seconds",
+        ]:
             assert field in item
 
 

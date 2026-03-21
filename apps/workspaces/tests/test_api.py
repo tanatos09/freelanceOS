@@ -81,17 +81,13 @@ class TestWorkspaceCreateEndpoint:
 
     def test_create_missing_name(self, auth_client):
         """Test: Chybí jméno — vrátí 400."""
-        response = auth_client.post(
-            "/api/v1/workspaces/", {"slug": "test-slug"}, format="json"
-        )
+        response = auth_client.post("/api/v1/workspaces/", {"slug": "test-slug"}, format="json")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "name" in response.data
 
     def test_create_missing_slug(self, auth_client):
         """Test: Chybí slug — vrátí 400."""
-        response = auth_client.post(
-            "/api/v1/workspaces/", {"name": "Test WS"}, format="json"
-        )
+        response = auth_client.post("/api/v1/workspaces/", {"name": "Test WS"}, format="json")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "slug" in response.data
 

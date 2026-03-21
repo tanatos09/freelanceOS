@@ -126,5 +126,9 @@ class TestExceptionHierarchy:
 
     def test_different_status_codes(self):
         """Test: Každá výjimka má jiný status kód."""
-        codes = {BusinessError().status_code, NotFoundError().status_code, PermissionDeniedError().status_code}
+        codes = {
+            BusinessError().status_code,
+            NotFoundError().status_code,
+            PermissionDeniedError().status_code,
+        }
         assert len(codes) == 3
