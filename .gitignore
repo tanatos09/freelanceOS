@@ -71,3 +71,9 @@ logs/
 pip-wheel-metadata/
 .mypy_cache/
 .ruff_cache/
+
+# --- Test output artifacts ---
+test_output.txt
+test_results.txt
+pytest_results_final.txt
+tests.log

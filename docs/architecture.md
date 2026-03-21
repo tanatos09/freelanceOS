@@ -1,7 +1,12 @@
 # FreelanceOS — Architektonická analýza a plán refaktoringu
 
-> Verze: 1.0 | Datum: 2026-03-08
+> Verze: 1.1 | Datum: 2026-03-21
 > Autor: Principal Software Architect
+
+> **Poznámka:** Tento dokument popisuje *cílovou architekturu*.
+> Některé vzory (SoftDeleteModel na modelech, WorkspaceOwnedMixin) zatím
+> nejsou implementovány v produkčním kódu — jsou připraveny jako infrastruktura
+> pro budoucí použití.
 
 ---
 
@@ -127,8 +132,8 @@ freelanceos/
 │   │
 │   ├── common/                          # Sdílený kód (base models, mixins)
 │   │   ├── __init__.py
-│   │   ├── models.py                    # BaseModel, SoftDeleteModel
-│   │   ├── mixins.py                    # WorkspaceOwnedMixin
+│   │   ├── models.py                    # BaseModel, SoftDeleteModel (infrastruktura)
+│   │   ├── mixins.py                    # (prázdný po cleanup)
 │   │   ├── exceptions.py               # BusinessError, PermissionDenied
 │   │   ├── permissions.py              # WorkspacePermission, RolePermission
 │   │   ├── pagination.py               # StandardPagination
