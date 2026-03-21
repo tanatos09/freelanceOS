@@ -221,7 +221,9 @@ def workcommit_detail(request, pk):
         instance = serializer.save()
 
         # Recalculate duration when times change on a completed commit
-        times_changed = "start_time" in serializer.validated_data or "end_time" in serializer.validated_data
+        times_changed = (
+            "start_time" in serializer.validated_data or "end_time" in serializer.validated_data
+        )
         if not instance.is_running and times_changed:
             instance.duration_seconds = max(
                 0, int((instance.end_time - instance.start_time).total_seconds())

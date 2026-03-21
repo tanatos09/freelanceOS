@@ -350,7 +350,9 @@ class TestWorkCommitDetailEndpoint:
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_detail_patch_cannot_clear_end_time_on_stopped_commit(self, auth_client, stopped_commit):
+    def test_detail_patch_cannot_clear_end_time_on_stopped_commit(
+        self, auth_client, stopped_commit
+    ):
         """Test: Nelze nastavit end_time=null na dokončeném záznamu."""
         response = auth_client.patch(
             f"/api/v1/workcommits/{stopped_commit.pk}/",
