@@ -9,6 +9,7 @@ from datetime import date, timedelta
 
 import factory
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 from clients.models import Client
 from projects.models import Project
@@ -69,3 +70,34 @@ class ProjectFactory(factory.django.DjangoModelFactory):
     )
     start_date = factory.LazyFunction(date.today)
     end_date = factory.LazyFunction(lambda: date.today() + timedelta(days=30))
+
+
+class WorkspaceFactory(factory.django.DjangoModelFactory):
+    """Factory pro vytváření testovacích workspace."""
+
+    class Meta:
+        model = "workspaces.Workspace"
+
+    name = factory.Faker("company")
+    slug = factory.Sequence(lambda n: f"workspace-{n}")
+    owner = factory.SubFactory(UserFactory)
+    plan = "free"
+    is_active = True
+
+
+class WorkCommitFactory(factory.django.DjangoModelFactory):
+    """Factory pro vytváření testovacích pracovních commitů."""
+
+    class Meta:
+        model = "workcommits.WorkCommit"
+
+    user = factory.SubFactory(UserFactory)
+    project = factory.SubFactory(
+        ProjectFactory,
+        user=factory.SelfAttribute("..user"),
+    )
+    start_time = factory.LazyFunction(timezone.now)
+    end_time = None
+    description = ""
+    tag = None
+    duration_seconds = 0
