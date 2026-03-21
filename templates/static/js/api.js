@@ -42,11 +42,12 @@ class APIClient {
       },
       running: () => this.get('/workcommits/running/'),
       start: (projectId) => this.post('/workcommits/start/', { project: projectId }),
-      commit: (id, description, continueTimer) =>
-        this.post(`/workcommits/${id}/commit/`, { description, continue: continueTimer }),
-      stop: (id, description = '') =>
-        this.post(`/workcommits/${id}/stop/`, { description }),
+      commit: (id, description, continueTimer, tag = null) =>
+        this.post(`/workcommits/${id}/commit/`, { description, continue: continueTimer, tag }),
+      stop: (id, description = '', tag = null) =>
+        this.post(`/workcommits/${id}/stop/`, { description, tag }),
       delete: (id) => this.delete(`/workcommits/${id}/`),
+      patch: (id, data) => this.patch(`/workcommits/${id}/`, data),
     };
 
     this.dashboard = {
@@ -172,6 +173,10 @@ class APIClient {
    */
   put(endpoint, body) {
     return this.request(endpoint, { method: 'PUT', body });
+  }
+
+  patch(endpoint, body) {
+    return this.request(endpoint, { method: 'PATCH', body });
   }
 
   /**

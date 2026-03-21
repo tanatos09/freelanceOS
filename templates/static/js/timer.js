@@ -186,6 +186,40 @@ class TimerManager {
     }
   }
 
+  // ── Tag history helpers ──────────────────────
+  _getTagHistory() {
+    try { return JSON.parse(localStorage.getItem('tagHistory') || '[]'); } catch { return []; }
+  }
+  _saveTagToHistory(tag) {
+    if (!tag) return;
+    const history = [tag, ...this._getTagHistory().filter(t => t !== tag)].slice(0, 5);
+    localStorage.setItem('tagHistory', JSON.stringify(history));
+    localStorage.setItem('lastCommitTag', tag);
+  }
+  _renderTagSuggestions(currentTag) {
+    const container = document.getElementById('tagSuggestions');
+    if (!container) return;
+    const tags = this._getTagHistory();
+    if (tags.length === 0) { container.innerHTML = ''; return; }
+    const top3 = tags.slice(0, 3);
+    container.innerHTML = top3.map(t =>
+      `<button type="button" class="tag-suggestion-btn${t === currentTag ? ' is-active' : ''}" data-tag="${this.escapeHtml(t)}">${this.escapeHtml(t)}</button>`
+    ).join('');
+    container.querySelectorAll('.tag-suggestion-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const input = document.getElementById('commitTag');
+        if (input.value === btn.dataset.tag) {
+          input.value = '';
+          btn.classList.remove('is-active');
+        } else {
+          input.value = btn.dataset.tag;
+          container.querySelectorAll('.tag-suggestion-btn').forEach(b => b.classList.remove('is-active'));
+          btn.classList.add('is-active');
+        }
+      });
+    });
+  }
+
   openCommitModal(shouldContinue) {
     if (!this.runningCommit) return;
     this._pendingContinue = shouldContinue;
@@ -193,7 +227,16 @@ class TimerManager {
       ? 'Commit + pokračovat'
       : 'Commit + zastavit';
     document.getElementById('commitDescription').value = '';
+    const lastTag = localStorage.getItem('lastCommitTag') || '';
+    document.getElementById('commitTag').value = lastTag;
     UIManager.modal.open('commitModal');
+    this._renderTagSuggestions(lastTag);
+    // keep active state in sync when user types
+    document.getElementById('commitTag').oninput = (e) => {
+      document.querySelectorAll('.tag-suggestion-btn').forEach(b =>
+        b.classList.toggle('is-active', b.dataset.tag === e.target.value)
+      );
+    };
     setTimeout(() => document.getElementById('commitDescription').focus(), 100);
   }
 
@@ -206,6 +249,7 @@ class TimerManager {
     }
 
     const description = document.getElementById('commitDescription').value.trim();
+    const tag = document.getElementById('commitTag').value.trim() || null;
     const form = document.getElementById('commitForm');
     FormHelper.setLoading(form, true);
 
@@ -215,13 +259,16 @@ class TimerManager {
         const result = await window.api.workcommits.commit(
           this.runningCommit.id,
           description,
-          true
+          true,
+          tag
         );
         this.runningCommit = result?.next_commit || null;
+        this._saveTagToHistory(tag);
         UIManager.success('Commit uložen, timer pokračuje.');
       } else {
         // stop
-        await window.api.workcommits.stop(this.runningCommit.id, description);
+        await window.api.workcommits.stop(this.runningCommit.id, description, tag);
+        this._saveTagToHistory(tag);
         this.runningCommit = null;
         UIManager.success('Timer zastaven a commit uložen.');
       }
@@ -243,7 +290,33 @@ class TimerManager {
 
     if (!tbody) return;
 
-    const finished = this.todayCommits.filter(c => !c.is_running);
+    const allFinished = this.todayCommits.filter(c => !c.is_running);
+
+    // ── Tag filter bar ───────────────────────
+    const filterBar = document.getElementById('tagFilterBar');
+    const tags = [...new Set(allFinished.map(c => c.tag).filter(Boolean))];
+    if (filterBar) {
+      if (tags.length > 1) {
+        filterBar.style.display = 'flex';
+        const active = this._activeTagFilter || null;
+        filterBar.innerHTML =
+          `<button class="tag-filter-btn${!active ? ' is-active' : ''}" data-tag="">Vše</button>` +
+          tags.map(t => `<button class="tag-filter-btn${t === active ? ' is-active' : ''}" data-tag="${this.escapeHtml(t)}">${this.escapeHtml(t)}</button>`).join('');
+        filterBar.querySelectorAll('.tag-filter-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            this._activeTagFilter = btn.dataset.tag || null;
+            this.renderTodayList();
+          });
+        });
+      } else {
+        filterBar.style.display = 'none';
+        this._activeTagFilter = null;
+      }
+    }
+
+    const finished = this._activeTagFilter
+      ? allFinished.filter(c => c.tag === this._activeTagFilter)
+      : allFinished;
 
     if (finished.length === 0) {
       if (tableWrap) tableWrap.style.display = 'none';
@@ -258,7 +331,7 @@ class TimerManager {
       <tr>
         <td class="td-muted td-time">${this.formatTime(c.start_time)}</td>
         <td><strong>${this.escapeHtml(c.project_name || '')}</strong></td>
-        <td class="td-muted">${this.escapeHtml(c.description || '—')}</td>
+        <td class="td-muted">${this.escapeHtml(c.description || '—')}<span class="commit-tag-wrap" data-id="${c.id}">${c.tag ? ' <span class="badge badge-tag badge-tag--edit" title="Klikni pro úpravu">' + this.escapeHtml(c.tag) + '</span>' : ' <span class="commit-tag-add" title="Přidat tag">+ tag</span>'}</span></td>
         <td class="td-duration">${this.formatDuration(c.duration_seconds)}</td>
         <td>
           <button class="btn btn-danger-soft btn-sm" onclick="timerManager.deleteCommit(${c.id})">Smazat</button>
@@ -270,6 +343,33 @@ class TimerManager {
     const total = finished.reduce((sum, c) => sum + (c.duration_seconds || 0), 0);
     const totalEl = document.getElementById('todayTotal');
     if (totalEl) totalEl.textContent = this.formatDuration(total);
+
+    // Inline tag edit
+    tbody.querySelectorAll('.commit-tag-wrap').forEach(wrap => {
+      const commitId = parseInt(wrap.dataset.id);
+      const commit = finished.find(c => c.id === commitId);
+      wrap.querySelector('.badge-tag--edit, .commit-tag-add')?.addEventListener('click', () => {
+        const currentTag = commit?.tag || '';
+        wrap.innerHTML = `<input class="commit-tag-input" type="text" value="${this.escapeHtml(currentTag)}" maxlength="50" placeholder="tag…" autocomplete="off">`;
+        const input = wrap.querySelector('input');
+        input.focus();
+        input.select();
+        const save = async () => {
+          const newTag = input.value.trim() || null;
+          if (newTag === (currentTag || null)) { await this.loadTodayCommits(); return; }
+          try {
+            await window.api.workcommits.patch(commitId, { tag: newTag });
+            if (newTag) this._saveTagToHistory(newTag);
+          } catch(e) { UIManager.error('Chyba při ukládání tagu'); }
+          await this.loadTodayCommits();
+        };
+        input.addEventListener('blur', save);
+        input.addEventListener('keydown', e => {
+          if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+          if (e.key === 'Escape') { input.removeEventListener('blur', save); this.loadTodayCommits(); }
+        });
+      });
+    });
   }
 
   async deleteCommit(id) {

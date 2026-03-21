@@ -64,6 +64,7 @@
     <span class="today-title">Dnešní práce</span>
     <span class="today-total-wrap">Celkem: <strong id="todayTotal" class="today-total">0:00</strong></span>
   </div>
+  <div id="tagFilterBar" class="tag-filter-bar" style="display:none"></div>
 
   <div class="table-wrap">
     <table>
@@ -121,6 +122,21 @@
           placeholder="např. Oprava CSS navigace…"
           autocomplete="off"
         />
+      </div>
+      <div class="form-group">
+        <label for="commitTag">
+          Tag
+          <span class="label-optional">(nepovinný, max 50 znaků)</span>
+        </label>
+        <input
+          type="text"
+          id="commitTag"
+          name="tag"
+          maxlength="50"
+          placeholder="např. frontend, bugfix…"
+          autocomplete="off"
+        />
+        <div id="tagSuggestions" class="tag-suggestions"></div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" data-modal-close="commitModal">Zrušit</button>

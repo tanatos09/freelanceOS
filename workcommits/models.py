@@ -22,6 +22,7 @@ class WorkCommit(models.Model):
     start_time = models.DateTimeField(default=timezone.now)
     end_time = models.DateTimeField(null=True, blank=True)
     description = models.CharField(max_length=100, blank=True, default="")
+    tag = models.CharField(max_length=50, null=True, blank=True, default=None)
     duration_seconds = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 

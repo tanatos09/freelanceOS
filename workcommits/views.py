@@ -111,9 +111,13 @@ def workcommit_commit(request, pk):
         )
 
     description = request.data.get("description", "")
+    tag = request.data.get("tag") or None
     should_continue = bool(request.data.get("continue", False))
 
     commit.stop(description=description)
+    if tag is not None:
+        commit.tag = tag
+        commit.save(update_fields=["tag"])
 
     next_commit = None
     if should_continue:
@@ -155,15 +159,20 @@ def workcommit_stop(request, pk):
         )
 
     description = request.data.get("description", "")
+    tag = request.data.get("tag") or None
     commit.stop(description=description)
+    if tag is not None:
+        commit.tag = tag
+        commit.save(update_fields=["tag"])
     return Response(WorkCommitSerializer(commit).data)
 
 
-@api_view(["GET", "DELETE"])
+@api_view(["GET", "PATCH", "DELETE"])
 @permission_classes([IsAuthenticated])
 def workcommit_detail(request, pk):
     """
     GET    /api/v1/workcommits/{pk}/ — detail
+    PATCH  /api/v1/workcommits/{pk}/ — partial update (tag, description)
     DELETE /api/v1/workcommits/{pk}/ — delete
     """
     try:
@@ -175,6 +184,17 @@ def workcommit_detail(request, pk):
         )
 
     if request.method == "GET":
+        return Response(WorkCommitSerializer(commit).data)
+
+    if request.method == "PATCH":
+        allowed = {"tag", "description"}
+        updated = []
+        for field in allowed:
+            if field in request.data:
+                setattr(commit, field, request.data[field] or (None if field == "tag" else ""))
+                updated.append(field)
+        if updated:
+            commit.save(update_fields=updated)
         return Response(WorkCommitSerializer(commit).data)
 
     commit.delete()

@@ -83,6 +83,7 @@
     <h2 class="dash-section-title" style="margin:0">Work commity</h2>
     <span id="commitsTotal" style="font-size:.85rem;color:var(--text-muted)"></span>
   </div>
+  <div id="pdTagFilterBar" class="tag-filter-bar" style="display:none;margin-bottom:.75rem"></div>
 
   <div id="commitsTimeline">
     <!-- skeleton -->
@@ -240,59 +241,128 @@
     });
 
   // ── Load work commits ─────────────────────
+  var allCommits = [];
+  var activeTagFilter = null;
+
+  function renderTimeline() {
+    const timeline = document.getElementById('commitsTimeline');
+    const empty = document.getElementById('commitsEmpty');
+    const filterBar = document.getElementById('pdTagFilterBar');
+
+    const finished = allCommits.filter(c => c.end_time);
+
+    // Tag filter bar
+    const tags = [...new Set(finished.map(c => c.tag).filter(Boolean))];
+    if (filterBar) {
+      if (tags.length > 1) {
+        filterBar.style.display = 'flex';
+        filterBar.innerHTML =
+          `<button class="tag-filter-btn${!activeTagFilter ? ' is-active' : ''}" data-tag="">Vše</button>` +
+          tags.map(t => `<button class="tag-filter-btn${t === activeTagFilter ? ' is-active' : ''}" data-tag="${esc(t)}">${esc(t)}</button>`).join('');
+        filterBar.querySelectorAll('.tag-filter-btn').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            activeTagFilter = btn.dataset.tag || null;
+            renderTimeline();
+          });
+        });
+      } else {
+        filterBar.style.display = 'none';
+        activeTagFilter = null;
+      }
+    }
+
+    const display = activeTagFilter ? finished.filter(c => c.tag === activeTagFilter) : finished;
+
+    if (display.length === 0) {
+      timeline.style.display = 'none';
+      if (empty) empty.style.display = 'block';
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+    timeline.style.display = '';
+
+    const totalSecs = display.reduce((s, c) => s + (c.duration_seconds || 0), 0);
+    setText('commitsTotal', display.length + ' commitů · ' + fmtDuration(totalSecs));
+
+    const groups = {};
+    display.forEach(function (c) {
+      const day = new Date(c.start_time).toLocaleDateString('cs-CZ', {
+        weekday: 'short', day: 'numeric', month: 'long', year: 'numeric',
+      });
+      if (!groups[day]) groups[day] = [];
+      groups[day].push(c);
+    });
+
+    timeline.innerHTML = Object.entries(groups).map(function ([day, items]) {
+      const rows = items.map(function (c) {
+        const isRunning = !c.end_time;
+        const dotStyle = isRunning ? 'background:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.2)' : '';
+        return `
+          <li class="activity-item">
+            <span class="activity-dot" style="${dotStyle}"></span>
+            <div class="activity-body">
+              <div style="font-size:.9rem;font-weight:500;color:var(--text-primary);display:flex;align-items:center;gap:.4rem;flex-wrap:wrap">
+                ${c.description ? esc(c.description) : '<span style="color:var(--text-muted);font-style:italic">Bez popisu</span>'}
+                <span class="commit-tag-wrap" data-id="${c.id}">${c.tag ? '<span class="badge badge-tag badge-tag--edit" title="Klikni pro úpravu">' + esc(c.tag) + '</span>' : '<span class="commit-tag-add" title="Přidat tag">+ tag</span>'}</span>
+              </div>
+              <div style="font-size:.8rem;color:var(--text-muted);margin-top:2px">
+                ${fmtTime(c.start_time)}${c.end_time ? ' – ' + fmtTime(c.end_time) : ''}
+                ${isRunning ? '<span class="badge badge-active" style="margin-left:.5rem;font-size:.7rem">běží</span>' : ''}
+              </div>
+            </div>
+            <span style="font-size:.8rem;font-weight:600;color:var(--text-secondary);white-space:nowrap">
+              ${fmtDuration(c.duration_seconds)}
+            </span>
+          </li>`;
+      }).join('');
+      return `
+        <div class="activity-day-group">
+          <div class="activity-day-label">${esc(day)}</div>
+          <ul class="activity-list">${rows}</ul>
+        </div>`;
+    }).join('');
+
+    // Inline tag edit
+    timeline.querySelectorAll('.commit-tag-wrap').forEach(function (wrap) {
+      const commitId = parseInt(wrap.dataset.id);
+      const commit = allCommits.find(c => c.id === commitId);
+      wrap.querySelector('.badge-tag--edit, .commit-tag-add')?.addEventListener('click', function () {
+        const currentTag = commit?.tag || '';
+        wrap.innerHTML = `<input class="commit-tag-input" type="text" value="${esc(currentTag)}" maxlength="50" placeholder="tag…" autocomplete="off">`;
+        const input = wrap.querySelector('input');
+        input.focus(); input.select();
+        const save = async function () {
+          const newTag = input.value.trim() || null;
+          if (newTag === (currentTag || null)) { renderTimeline(); return; }
+          try {
+            const updated = await window.api.workcommits.patch(commitId, { tag: newTag });
+            const idx = allCommits.findIndex(c => c.id === commitId);
+            if (idx !== -1) allCommits[idx] = { ...allCommits[idx], tag: updated.tag };
+          } catch (e) {
+            if (window.UIManager) UIManager.error('Chyba při ukládání tagu');
+          }
+          renderTimeline();
+        };
+        input.addEventListener('blur', save);
+        input.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+          if (e.key === 'Escape') { input.removeEventListener('blur', save); renderTimeline(); }
+        });
+      });
+    });
+  }
+
   window.api.workcommits.list({ project: projectId })
     .then(function (commits) {
       const timeline = document.getElementById('commitsTimeline');
       const empty = document.getElementById('commitsEmpty');
-
-      const finished = (commits || []).filter(c => c.end_time);
-
-      if (finished.length === 0) {
+      allCommits = commits || [];
+      if (allCommits.filter(c => c.end_time).length === 0) {
         timeline.style.display = 'none';
         if (empty) empty.style.display = 'block';
         return;
       }
-
-      const totalSecs = finished.reduce((s, c) => s + (c.duration_seconds || 0), 0);
-      setText('commitsTotal', finished.length + ' commitů · ' + fmtDuration(totalSecs));
-
-      // Group by date (newest first – API already orders by -start_time)
-      const groups = {};
-      finished.forEach(function (c) {
-        const day = new Date(c.start_time).toLocaleDateString('cs-CZ', {
-          weekday: 'short', day: 'numeric', month: 'long', year: 'numeric',
-        });
-        if (!groups[day]) groups[day] = [];
-        groups[day].push(c);
-      });
-
-      timeline.innerHTML = Object.entries(groups).map(function ([day, items]) {
-        const rows = items.map(function (c) {
-          const isRunning = !c.end_time;
-          const dotStyle = isRunning ? 'background:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.2)' : '';
-          return `
-            <li class="activity-item">
-              <span class="activity-dot" style="${dotStyle}"></span>
-              <div class="activity-body">
-                <div style="font-size:.9rem;font-weight:500;color:var(--text-primary)">
-                  ${c.description ? esc(c.description) : '<span style="color:var(--text-muted);font-style:italic">Bez popisu</span>'}
-                </div>
-                <div style="font-size:.8rem;color:var(--text-muted);margin-top:2px">
-                  ${fmtTime(c.start_time)}${c.end_time ? ' – ' + fmtTime(c.end_time) : ''}
-                  ${isRunning ? '<span class="badge badge-active" style="margin-left:.5rem;font-size:.7rem">běží</span>' : ''}
-                </div>
-              </div>
-              <span style="font-size:.8rem;font-weight:600;color:var(--text-secondary);white-space:nowrap">
-                ${fmtDuration(c.duration_seconds)}
-              </span>
-            </li>`;
-        }).join('');
-        return `
-          <div class="activity-day-group">
-            <div class="activity-day-label">${esc(day)}</div>
-            <ul class="activity-list">${rows}</ul>
-          </div>`;
-      }).join('');
+      renderTimeline();
     })
     .catch(function () {
       const timeline = document.getElementById('commitsTimeline');

@@ -591,6 +591,43 @@ a {
 .badge-danger  { background: rgba(255, 77, 109, 0.12); color: var(--danger); }
 .badge-muted   { background: rgba(122, 127, 153, 0.15); color: var(--muted); }
 .badge-warning { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+.badge-tag     { background: rgba(108, 99, 255, 0.10); color: var(--accent); border-radius: 999px; text-transform: none; font-weight: 500; letter-spacing: 0; }
+
+.tag-filter-bar { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .75rem; }
+.tag-filter-btn {
+  padding: .2rem .7rem;
+  border-radius: 999px;
+  border: 1px solid var(--border, rgba(255,255,255,.1));
+  background: transparent;
+  color: var(--text-muted);
+  font-size: .75rem;
+  cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+  line-height: 1.5;
+}
+.tag-filter-btn:hover { background: rgba(108,99,255,.08); color: var(--accent); border-color: rgba(108,99,255,.3); }
+.tag-filter-btn.is-active { background: rgba(108,99,255,.15); color: var(--accent); border-color: var(--accent); font-weight: 600; }
+
+.badge-tag--edit  { cursor: pointer; opacity: .85; }
+.badge-tag--edit:hover { opacity: 1; text-decoration: underline; }
+.commit-tag-add   { font-size: .72rem; color: var(--text-muted); cursor: pointer; margin-left: .25rem; opacity: 0; transition: opacity .15s; }
+tr:hover .commit-tag-add { opacity: 1; }
+.commit-tag-input { font-size: .78rem; padding: .15rem .4rem; border: 1px solid var(--accent); border-radius: 999px; outline: none; width: 90px; color: var(--text-primary); background: var(--surface); }
+
+.tag-suggestions { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .45rem; min-height: 0; }
+.tag-suggestion-btn {
+  padding: .2rem .65rem;
+  border-radius: 999px;
+  border: 1px solid rgba(108,99,255,.3);
+  background: transparent;
+  color: var(--accent);
+  font-size: .75rem;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+  line-height: 1.5;
+}
+.tag-suggestion-btn:hover { background: rgba(108,99,255,.12); }
+.tag-suggestion-btn.is-active { background: rgba(108,99,255,.18); border-color: var(--accent); font-weight: 600; }
 
 
 /* ──────────────────────────────────────────

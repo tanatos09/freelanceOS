@@ -522,11 +522,11 @@
 <body>
   {% block body %}{% endblock %}
 
-  <script src="{% static 'js/api.js' %}"></script>
+  <script src="{% static 'js/api.js' %}?v=3"></script>
   <script src="{% static 'js/app.js' %}"></script>
   <script src="{% static 'js/clients.js' %}"></script>
   <script src="{% static 'js/projects.js' %}"></script>
-  <script src="{% static 'js/timer.js' %}"></script>
+  <script src="{% static 'js/timer.js' %}?v=6"></script>
   {% block extra_scripts %}{% endblock %}
 </body>
 </html>

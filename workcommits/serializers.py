@@ -19,6 +19,7 @@ class WorkCommitSerializer(serializers.ModelSerializer):
             "start_time",
             "end_time",
             "description",
+            "tag",
             "duration_seconds",
             "duration_hours",
             "is_running",
