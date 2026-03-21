@@ -290,6 +290,87 @@ class TestWorkCommitDetailEndpoint:
         response = auth_client.delete(f"/api/v1/workcommits/{commit.pk}/")
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
+    def test_detail_patch_start_time_recalculates_duration(self, auth_client, stopped_commit):
+        """Test: PATCH start_time přepočítá duration_seconds."""
+        new_start = stopped_commit.end_time - timezone.timedelta(hours=2)
+        response = auth_client.patch(
+            f"/api/v1/workcommits/{stopped_commit.pk}/",
+            {"start_time": new_start.isoformat()},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["duration_seconds"] == 7200
+
+    def test_detail_patch_end_time_recalculates_duration(self, auth_client, stopped_commit):
+        """Test: PATCH end_time přepočítá duration_seconds."""
+        new_end = stopped_commit.start_time + timezone.timedelta(minutes=30)
+        response = auth_client.patch(
+            f"/api/v1/workcommits/{stopped_commit.pk}/",
+            {"end_time": new_end.isoformat()},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["duration_seconds"] == 1800
+
+    def test_detail_patch_project(self, auth_client, user, project, client_obj):
+        """Test: PATCH projekt změní přiřazení."""
+        from tests.factories import ProjectFactory
+
+        new_project = ProjectFactory(user=user, client=client_obj)
+        commit = WorkCommitFactory(user=user, project=project)
+        response = auth_client.patch(
+            f"/api/v1/workcommits/{commit.pk}/",
+            {"project": new_project.id},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["project"] == new_project.id
+
+    def test_detail_patch_project_other_user(self, auth_client, user, project, user_alt):
+        """Test: Nelze přiřadit cizí projekt."""
+        from tests.factories import ClientFactory, ProjectFactory
+
+        commit = WorkCommitFactory(user=user, project=project)
+        alt_client = ClientFactory(user=user_alt)
+        alt_project = ProjectFactory(user=user_alt, client=alt_client)
+        response = auth_client.patch(
+            f"/api/v1/workcommits/{commit.pk}/",
+            {"project": alt_project.id},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_detail_patch_invalid_times(self, auth_client, stopped_commit):
+        """Test: end_time před start_time vrátí 400."""
+        bad_end = stopped_commit.start_time - timezone.timedelta(minutes=1)
+        response = auth_client.patch(
+            f"/api/v1/workcommits/{stopped_commit.pk}/",
+            {"end_time": bad_end.isoformat()},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_detail_patch_cannot_clear_end_time_on_stopped_commit(self, auth_client, stopped_commit):
+        """Test: Nelze nastavit end_time=null na dokončeném záznamu."""
+        response = auth_client.patch(
+            f"/api/v1/workcommits/{stopped_commit.pk}/",
+            {"end_time": None},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_detail_patch_running_commit_times_not_recalculate(self, auth_client, running_commit):
+        """Test: Editace start_time běžícího commitu nepřepočítá duration."""
+        new_start = timezone.now() - timezone.timedelta(hours=3)
+        response = auth_client.patch(
+            f"/api/v1/workcommits/{running_commit.pk}/",
+            {"start_time": new_start.isoformat()},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["is_running"] is True
+        assert response.data["duration_seconds"] == 0  # not recalculated while running
+
 
 class TestWorkCommitCommitEndpoint:
     """Testy pro POST /api/v1/workcommits/{pk}/commit/"""

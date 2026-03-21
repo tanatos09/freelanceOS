@@ -123,6 +123,39 @@
   </div>
 </div>
 
+<!-- Edit commit modal -->
+<div class="modal" id="editModal">
+  <div class="modal-content modal-content--narrow">
+    <div class="modal-header">
+      <h2 class="modal-title">Upravit záznam</h2>
+      <button class="modal-close" data-modal-close="editModal" aria-label="Zavřít">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <form id="editForm" novalidate>
+      <div class="form-group">
+        <label for="editDescription">Popis <span class="label-optional">(max 100 znaků)</span></label>
+        <input type="text" id="editDescription" maxlength="100" placeholder="Co jsi dělal/a?" autocomplete="off" />
+      </div>
+      <div class="form-group">
+        <label for="editStartTime">Začátek</label>
+        <input type="datetime-local" id="editStartTime" required />
+      </div>
+      <div class="form-group">
+        <label for="editEndTime">Konec</label>
+        <input type="datetime-local" id="editEndTime" />
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" data-modal-close="editModal">Zrušit</button>
+        <button type="submit" class="btn btn-primary">Uložit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -310,9 +343,12 @@
                 ${isRunning ? '<span class="badge badge-active" style="margin-left:.5rem;font-size:.7rem">běží</span>' : ''}
               </div>
             </div>
-            <span style="font-size:.8rem;font-weight:600;color:var(--text-secondary);white-space:nowrap">
-              ${fmtDuration(c.duration_seconds)}
-            </span>
+            <div style="display:flex;align-items:center;gap:.5rem;flex-shrink:0">
+              <span style="font-size:.8rem;font-weight:600;color:var(--text-secondary);white-space:nowrap">
+                ${fmtDuration(c.duration_seconds)}
+              </span>
+              ${!isRunning ? `<button class="btn btn-outline btn-sm" onclick="pdOpenEditModal(${c.id})">Upravit</button><button class="btn btn-danger-soft btn-sm" onclick="pdDeleteCommit(${c.id})">Smazat</button>` : ''}
+            </div>
           </li>`;
       }).join('');
       return `
@@ -352,23 +388,86 @@
     });
   }
 
-  window.api.workcommits.list({ project: projectId })
-    .then(function (commits) {
-      const timeline = document.getElementById('commitsTimeline');
-      const empty = document.getElementById('commitsEmpty');
-      allCommits = commits || [];
-      if (allCommits.filter(c => c.end_time).length === 0) {
-        timeline.style.display = 'none';
-        if (empty) empty.style.display = 'block';
-        return;
-      }
+  // ── Edit modal ────────────────────────────
+  function toDatetimeLocal(isoStr) {
+    if (!isoStr) return '';
+    const d = new Date(isoStr);
+    const pad = function (n) { return String(n).padStart(2, '0'); };
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+      'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+
+  var editingCommitId = null;
+
+  window.pdDeleteCommit = async function (id) {
+    if (!confirm('Opravdu chcete smazat tento commit?')) return;
+    try {
+      await window.api.workcommits.delete(id);
+      allCommits = allCommits.filter(function (c) { return c.id !== id; });
+      UIManager.success('Commit smazán.');
       renderTimeline();
-    })
-    .catch(function () {
-      const timeline = document.getElementById('commitsTimeline');
-      if (timeline) timeline.innerHTML =
-        '<p style="color:var(--danger);padding:1rem 0">Chyba při načítání commitů</p>';
-    });
+    } catch (err) {
+      UIManager.error(err.message || 'Chyba při mazání.');
+    }
+  };
+
+  window.pdOpenEditModal = function (id) {
+    const commit = allCommits.find(function (c) { return c.id === id; });
+    if (!commit) return;
+    editingCommitId = id;
+    document.getElementById('editDescription').value = commit.description || '';
+    document.getElementById('editStartTime').value = toDatetimeLocal(commit.start_time);
+    document.getElementById('editEndTime').value = commit.end_time ? toDatetimeLocal(commit.end_time) : '';
+    UIManager.modal.open('editModal');
+    setTimeout(function () { document.getElementById('editDescription').focus(); }, 100);
+  };
+
+  document.getElementById('editForm')?.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const id = editingCommitId;
+    if (!id) return;
+
+    const description = document.getElementById('editDescription').value.trim();
+    const startVal = document.getElementById('editStartTime').value;
+    const endVal = document.getElementById('editEndTime').value;
+
+    const payload = { description };
+    if (startVal) payload.start_time = new Date(startVal).toISOString();
+    if (endVal) payload.end_time = new Date(endVal).toISOString();
+
+    const submitBtn = document.querySelector('#editForm button[type="submit"]');
+    if (submitBtn) submitBtn.disabled = true;
+    try {
+      const updated = await window.api.workcommits.patch(id, payload);
+      const idx = allCommits.findIndex(function (c) { return c.id === id; });
+      if (idx !== -1) allCommits[idx] = updated;
+      UIManager.modal.close('editModal');
+      UIManager.success('Záznam upraven.');
+      renderTimeline();
+    } catch (err) {
+      UIManager.error(err.message || 'Chyba při ukládání.');
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
+    }
+  });
+
+  function loadCommits() {
+    return window.api.workcommits.list({ project: projectId })
+      .then(function (commits) {
+        allCommits = commits || [];
+        renderTimeline();
+      })
+      .catch(function () {
+        const timeline = document.getElementById('commitsTimeline');
+        if (timeline) timeline.innerHTML =
+          '<p style="color:var(--danger);padding:1rem 0">Chyba při načítání commitů</p>';
+      });
+  }
+
+  loadCommits();
+
+  // Reload when sidebar timer saves a commit
+  window.addEventListener('workcommit:saved', loadCommits);
 
 }());
 </script>

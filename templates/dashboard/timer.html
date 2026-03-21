@@ -146,6 +146,39 @@
   </div>
 </div>
 
+<!-- Edit commit modal -->
+<div class="modal" id="editModal">
+  <div class="modal-content modal-content--narrow">
+    <div class="modal-header">
+      <h2 class="modal-title">Upravit záznam</h2>
+      <button class="modal-close" data-modal-close="editModal" aria-label="Zavřít">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <form id="editForm" novalidate>
+      <div class="form-group">
+        <label for="editDescription">Popis <span class="label-optional">(max 100 znaků)</span></label>
+        <input type="text" id="editDescription" name="description" maxlength="100" placeholder="Co jsi dělal/a?" autocomplete="off" />
+      </div>
+      <div class="form-group">
+        <label for="editStartTime">Začátek</label>
+        <input type="datetime-local" id="editStartTime" name="start_time" required />
+      </div>
+      <div class="form-group">
+        <label for="editEndTime">Konec</label>
+        <input type="datetime-local" id="editEndTime" name="end_time" />
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" data-modal-close="editModal">Zrušit</button>
+        <button type="submit" class="btn btn-primary" id="editSubmitBtn">Uložit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}{% endblock %}

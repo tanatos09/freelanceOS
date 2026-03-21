@@ -172,7 +172,7 @@ def workcommit_stop(request, pk):
 def workcommit_detail(request, pk):
     """
     GET    /api/v1/workcommits/{pk}/ — detail
-    PATCH  /api/v1/workcommits/{pk}/ — partial update (tag, description)
+    PATCH  /api/v1/workcommits/{pk}/ — partial update (description, tag, start_time, end_time, project)
     DELETE /api/v1/workcommits/{pk}/ — delete
     """
     try:
@@ -187,15 +187,48 @@ def workcommit_detail(request, pk):
         return Response(WorkCommitSerializer(commit).data)
 
     if request.method == "PATCH":
-        allowed = {"tag", "description"}
-        updated = []
-        for field in allowed:
-            if field in request.data:
-                setattr(commit, field, request.data[field] or (None if field == "tag" else ""))
-                updated.append(field)
-        if updated:
-            commit.save(update_fields=updated)
-        return Response(WorkCommitSerializer(commit).data)
+        # Validate project ownership before serializer runs
+        if "project" in request.data:
+            from projects.models import Project
+
+            try:
+                Project.objects.get(id=request.data["project"], user=request.user)
+            except Project.DoesNotExist:
+                return Response(
+                    {"detail": "Projekt nenalezen."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+        # Disallow clearing end_time on an already-completed commit
+        if "end_time" in request.data and not request.data["end_time"] and not commit.is_running:
+            return Response(
+                {"detail": "Nelze odstranit end_time dokončeného záznamu."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = WorkCommitSerializer(commit, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        new_start = serializer.validated_data.get("start_time", commit.start_time)
+        new_end = serializer.validated_data.get("end_time", commit.end_time)
+        if new_end and new_start >= new_end:
+            return Response(
+                {"detail": "end_time musí být po start_time."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        instance = serializer.save()
+
+        # Recalculate duration when times change on a completed commit
+        times_changed = "start_time" in serializer.validated_data or "end_time" in serializer.validated_data
+        if not instance.is_running and times_changed:
+            instance.duration_seconds = max(
+                0, int((instance.end_time - instance.start_time).total_seconds())
+            )
+            instance.save(update_fields=["duration_seconds"])
+
+        return Response(WorkCommitSerializer(instance).data)
 
     commit.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)

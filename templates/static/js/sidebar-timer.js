@@ -6,8 +6,9 @@
  */
 class SidebarTimer {
   constructor() {
-    this.runningCommit = null;
+    this.runningCommit  = null;
     this.tickInterval   = null;
+    this.reminderInterval = null;
     this.commitMode     = null; // 'commit' | 'stop'
     this._init();
   }
@@ -42,6 +43,12 @@ class SidebarTimer {
         if (e.key === 'Enter')  this._submitCommit();
         if (e.key === 'Escape') this._closeCommitForm();
       });
+
+    document.getElementById('timerReminderOk')
+      ?.addEventListener('click', () => this._hideReminderDialog());
+
+    document.getElementById('timerReminderStop')
+      ?.addEventListener('click', () => this._stopFromReminder());
   }
 
   async _refresh() {
@@ -65,7 +72,7 @@ class SidebarTimer {
       document.getElementById('miniTimerProject').textContent =
         this.runningCommit.project_name || '—';
       this._stopTick();
-      this._startTick(this.runningCommit.elapsed_seconds || 0);
+      this._startTick();
     } else {
       idle.style.display    = 'block';
       running.style.display = 'none';
@@ -74,13 +81,65 @@ class SidebarTimer {
     this._closeCommitForm();
   }
 
-  _startTick(initial) {
-    let elapsed = initial;
-    this._updateDisplay(elapsed);
-    this.tickInterval = setInterval(() => this._updateDisplay(++elapsed), 1000);
+  static REMINDER_THRESHOLD_MS = 4 * 60 * 60 * 1000;
+
+  _startTick() {
+    const tick = () => {
+      const elapsed = Date.now() - new Date(this.runningCommit.start_time).getTime();
+      this._updateDisplay(Math.floor(elapsed / 1000));
+    };
+    tick();
+    this.tickInterval = setInterval(tick, 1000);
+    this._startReminderCheck();
+  }
+
+  _startReminderCheck() {
+    const check = () => {
+      const key = `timerReminderShown_${this.runningCommit.id}`;
+      if (localStorage.getItem(key)) return;
+      const elapsed = Date.now() - new Date(this.runningCommit.start_time).getTime();
+      if (elapsed >= SidebarTimer.REMINDER_THRESHOLD_MS) {
+        localStorage.setItem(key, '1');
+        this._showReminderDialog();
+      }
+    };
+    check();
+    this.reminderInterval = setInterval(check, 60_000);
+  }
+
+  _showReminderDialog() {
+    const dialog = document.getElementById('timerReminderDialog');
+    if (dialog) dialog.style.display = 'flex';
+  }
+
+  _hideReminderDialog() {
+    const dialog = document.getElementById('timerReminderDialog');
+    if (dialog) dialog.style.display = 'none';
+  }
+
+  async _stopFromReminder() {
+    this._hideReminderDialog();
+    if (!this.runningCommit) return;
+    try {
+      await window.api.workcommits.stop(this.runningCommit.id, '');
+      this.runningCommit = null;
+      this._render();
+      if (typeof timerManager !== 'undefined' && timerManager) {
+        timerManager.runningCommit = null;
+        timerManager.renderTimerWidget();
+        timerManager.loadTodayCommits();
+      }
+    } catch (err) {
+      console.error('[SidebarTimer] stop from reminder:', err);
+      if (typeof UIManager !== 'undefined') UIManager.error(err.message || 'Chyba při zastavení timeru.');
+    }
   }
 
   _stopTick() {
+    if (this.reminderInterval) {
+      clearInterval(this.reminderInterval);
+      this.reminderInterval = null;
+    }
     if (this.tickInterval) {
       clearInterval(this.tickInterval);
       this.tickInterval = null;

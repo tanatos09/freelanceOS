@@ -53,6 +53,12 @@ class TimerManager {
       e.preventDefault();
       this.handleCommitSubmit();
     });
+
+    // Edit modal form
+    document.getElementById('editForm')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      this.handleEditSubmit();
+    });
   }
 
   async loadProjects() {
@@ -333,7 +339,8 @@ class TimerManager {
         <td><strong>${this.escapeHtml(c.project_name || '')}</strong></td>
         <td class="td-muted">${this.escapeHtml(c.description || '—')}<span class="commit-tag-wrap" data-id="${c.id}">${c.tag ? ' <span class="badge badge-tag badge-tag--edit" title="Klikni pro úpravu">' + this.escapeHtml(c.tag) + '</span>' : ' <span class="commit-tag-add" title="Přidat tag">+ tag</span>'}</span></td>
         <td class="td-duration">${this.formatDuration(c.duration_seconds)}</td>
-        <td>
+        <td class="td-actions">
+          <button class="btn btn-outline btn-sm" onclick="timerManager.openEditModal(${c.id})">Upravit</button>
           <button class="btn btn-danger-soft btn-sm" onclick="timerManager.deleteCommit(${c.id})">Smazat</button>
         </td>
       </tr>
@@ -370,6 +377,50 @@ class TimerManager {
         });
       });
     });
+  }
+
+  _toDatetimeLocal(isoStr) {
+    if (!isoStr) return '';
+    const d = new Date(isoStr);
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  openEditModal(id) {
+    const commit = this.todayCommits.find(c => c.id === id);
+    if (!commit) return;
+    this._editingCommitId = id;
+    document.getElementById('editDescription').value = commit.description || '';
+    document.getElementById('editStartTime').value = this._toDatetimeLocal(commit.start_time);
+    document.getElementById('editEndTime').value = commit.end_time ? this._toDatetimeLocal(commit.end_time) : '';
+    UIManager.modal.open('editModal');
+    setTimeout(() => document.getElementById('editDescription').focus(), 100);
+  }
+
+  async handleEditSubmit() {
+    const id = this._editingCommitId;
+    if (!id) return;
+
+    const description = document.getElementById('editDescription').value.trim();
+    const startVal = document.getElementById('editStartTime').value;
+    const endVal = document.getElementById('editEndTime').value;
+
+    const payload = { description };
+    if (startVal) payload.start_time = new Date(startVal).toISOString();
+    if (endVal) payload.end_time = new Date(endVal).toISOString();
+
+    const form = document.getElementById('editForm');
+    FormHelper.setLoading(form, true);
+    try {
+      await window.api.workcommits.patch(id, payload);
+      UIManager.success('Záznam upraven.');
+      UIManager.modal.close('editModal');
+      await this.loadTodayCommits();
+    } catch (err) {
+      UIManager.error(err.message || 'Chyba při ukládání.');
+    } finally {
+      FormHelper.setLoading(form, false);
+    }
   }
 
   async deleteCommit(id) {

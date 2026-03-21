@@ -35,3 +35,7 @@ class WorkCommitSerializer(serializers.ModelSerializer):
         if obj.is_running:
             return int((timezone.now() - obj.start_time).total_seconds())
         return obj.duration_seconds
+
+    def validate_tag(self, value):
+        """Coerce empty string to None."""
+        return value or None
