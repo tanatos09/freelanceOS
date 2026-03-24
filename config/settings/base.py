@@ -41,6 +41,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -98,7 +99,8 @@ USE_TZ = True
 
 # Static files
 STATIC_URL = "static/"
-STATICFILES_DIRS = [BASE_DIR / "static", BASE_DIR / "templates" / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
 # Auth
 AUTH_USER_MODEL = "users.User"
