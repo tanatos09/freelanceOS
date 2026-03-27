@@ -2,6 +2,31 @@
 
 > Time tracking s commit-based workflow pro freelancery.
 
+## 🚧 Aktuální vývoj (checklist)
+
+Tato sekce bude obsahovat seznam aktuálních úkolů rozdělený podle priority.
+
+### 🔴 MUST (kritické opravy)
+
+* Opravit validaci formulářů (zobrazovat chyby přímo v UI, ne jen v network)
+* Opravit flow vytváření projektu (nejdřív klient, pak projekt)
+* Opravit nekonzistenci timeru (frontend vs backend čas)
+* Opravit náhodné selhání ukládání projektu
+
+### 🟡 SHOULD (UX vylepšení)
+
+* Přidat datepicker pro výběr datumu
+* Přidat pause funkci pro timer
+* Opravit "odpracováno dnes" (neaktualizuje se správně)
+* Vylepšit notifikace (viditelnost a konzistence)
+
+### 🟢 NICE TO HAVE (budoucí vylepšení)
+
+* Přidat onboarding pro nové uživatele
+* Přidat podporu pro tým / zaměstnance
+* Vylepšit chování na mobilu (taby, background)
+* Přidat empty states a tooltipy
+
 ## Co to je
 
 **FreelanceOS** je minimalistické CRM + time tracker. Klíčová vlastnost: **commit-based time tracking** — místo klasického timeru commituješ práci průběžně (jako git).
