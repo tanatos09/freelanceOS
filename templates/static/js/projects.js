@@ -7,6 +7,7 @@ class ProjectsManager {
     this.projects = [];
     this.clients = [];
     this.editingId = null;
+    this._projectsLoading = false;
     this.filters = {
       search: '',
       status: '',
@@ -42,6 +43,7 @@ class ProjectsManager {
       e.preventDefault();
       this.handleFormSubmit();
     });
+    FormHelper.attachBlurValidation(document.getElementById('projectForm'));
 
     // Search and filters
     document.getElementById('searchInput')?.addEventListener(
@@ -75,9 +77,23 @@ class ProjectsManager {
       const clientFilter = document.getElementById('clientFilter');
       clientFilter.innerHTML = '<option value="">Všichni klienti</option>' +
         this.clients.map(c => `<option value="${c.id}">${this.escapeHtml(c.name)}</option>`).join('');
+
+      this.updateNoClientsUI();
     } catch (err) {
       console.error('Failed to load clients:', err);
     }
+  }
+
+  updateNoClientsUI() {
+    const hasNoClients = this.clients.length === 0;
+    const notice = document.getElementById('noClientsNotice');
+    if (notice) notice.style.display = hasNoClients ? 'flex' : 'none';
+    const addBtn = document.getElementById('addProjectBtn');
+    if (addBtn) {
+      addBtn.disabled = hasNoClients;
+      addBtn.title = hasNoClients ? 'Nejd\u0159\u00edv vytvo\u0159 klienta' : '';
+    }
+    if (!this._projectsLoading) this.renderTable();
   }
 
   showSkeleton() {
@@ -101,16 +117,19 @@ class ProjectsManager {
   }
 
   async loadProjects() {
+    this._projectsLoading = true;
     this.showSkeleton();
     try {
       this.projects = await window.api.projects.list();
       this.renderTable();
     } catch (err) {
       console.error('Failed to load projects:', err);
-      UIManager.error(err.message || 'Chyba při načítání projektů');
+      UIManager.error(err.message || 'Chyba p\u0159i na\u010d\u00edt\u00e1n\u00ed projekt\u016f');
       const tbody = document.getElementById('projectsTbody');
       if (tbody) tbody.innerHTML =
-        '<tr><td colspan="6" style="text-align: center; color: var(--danger);">Chyba při načítání</td></tr>';
+        '<tr><td colspan="6" style="text-align: center; color: var(--danger);">Chyba p\u0159i na\u010d\u00edt\u00e1n\u00ed</td></tr>';
+    } finally {
+      this._projectsLoading = false;
     }
   }
 
@@ -151,7 +170,14 @@ class ProjectsManager {
 
     if (filtered.length === 0) {
       if (tableWrap) tableWrap.style.display = 'none';
-      if (emptyState) emptyState.style.display = 'block';
+      if (emptyState) {
+        emptyState.style.display = 'flex';
+        const noClients = this.clients.length === 0;
+        const normal = document.getElementById('emptyStateNormal');
+        const onboarding = document.getElementById('emptyStateOnboarding');
+        if (normal) normal.style.display = noClients ? 'none' : '';
+        if (onboarding) onboarding.style.display = noClients ? '' : 'none';
+      }
       return;
     }
 
@@ -200,10 +226,16 @@ class ProjectsManager {
   }
 
   openAddModal() {
+    if (this.clients.length === 0) {
+      UIManager.error('Nejd\u0159\u00edv mus\u00ed\u0161 vytvo\u0159it klienta.');
+      return;
+    }
     this.editingId = null;
     document.getElementById('modalTitle').textContent = 'Nový projekt';
     FormHelper.clear(document.getElementById('projectForm'));
     document.getElementById('projectStatus').value = 'active';
+    if (window._fpProjectStart) window._fpProjectStart.setDate(new Date(), false);
+    if (window._fpProjectEnd)   window._fpProjectEnd.clear();
     UIManager.modal.open('projectModal');
   }
 
@@ -215,6 +247,8 @@ class ProjectsManager {
 
     try {
       const project = await window.api.projects.get(projectId);
+      // Guard: user may have opened a different edit modal while this fetch was in-flight
+      if (this.editingId !== projectId) return;
       FormHelper.populate(document.getElementById('projectForm'), {
         name: project.name,
         client: project.client,
@@ -226,6 +260,13 @@ class ProjectsManager {
         start_date: project.start_date || '',
         end_date: project.end_date || '',
       });
+      // Sync flatpickr calendar display with the populated values
+      if (window._fpProjectStart) {
+        project.start_date ? window._fpProjectStart.setDate(project.start_date, false) : window._fpProjectStart.clear();
+      }
+      if (window._fpProjectEnd) {
+        project.end_date ? window._fpProjectEnd.setDate(project.end_date, false) : window._fpProjectEnd.clear();
+      }
     } catch (err) {
       UIManager.error('Chyba při načítání projektu');
       UIManager.modal.close('projectModal');
@@ -234,6 +275,7 @@ class ProjectsManager {
 
   async handleFormSubmit() {
     const form = document.getElementById('projectForm');
+    if (!FormHelper.validate(form)) return;
     const data = FormHelper.getData(form);
 
     // Convert string values to proper types

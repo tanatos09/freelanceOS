@@ -84,11 +84,9 @@ class ProjectService:
     def get_project_detail(user, project_id, workspace=None):
         """Vrátí detail projektu (ověří ownership)."""
         try:
-            filters = {"id": project_id}
+            filters = {"id": project_id, "user": user}  # always scoped to user
             if workspace:
                 filters["workspace"] = workspace
-            else:
-                filters["user"] = user
             return Project.objects.get(**filters)
         except Project.DoesNotExist:
             return None
@@ -96,10 +94,9 @@ class ProjectService:
     @staticmethod
     def get_project_stats(user, workspace=None):
         """Vrátí statistiky všech projektů uživatele."""
+        projects = Project.objects.filter(user=user)  # always scoped to user
         if workspace:
-            projects = Project.objects.filter(workspace=workspace)
-        else:
-            projects = Project.objects.filter(user=user)
+            projects = projects.filter(workspace=workspace)
 
         return {
             "total_count": projects.count(),

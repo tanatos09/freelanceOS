@@ -13,10 +13,12 @@
       <div class="form-group">
         <label for="email">E-mail</label>
         <input type="email" id="email" placeholder="vas@email.cz" autocomplete="email" required />
+        <div class="form-error"></div>
       </div>
       <div class="form-group">
         <label for="password">Heslo</label>
         <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" required />
+        <div class="form-error"></div>
       </div>
       <button type="submit" class="btn" id="submitBtn">Přihlásit se</button>
     </form>
@@ -34,22 +36,61 @@
   }
 
   const form = document.getElementById('loginForm');
-  const alert = document.getElementById('alert');
+  const alertEl = document.getElementById('alert');
   const btn = document.getElementById('submitBtn');
+  const emailEl = document.getElementById('email');
+  const passwordEl = document.getElementById('password');
 
-  function showError(msg) {
-    alert.textContent = msg;
-    alert.className = 'alert alert-error show';
+  function showAlert(msg) {
+    alertEl.textContent = msg;
+    alertEl.className = 'alert alert-error show';
   }
+
+  function clearAlert() {
+    alertEl.className = 'alert';
+  }
+
+  function setFieldError(inputEl, msg) {
+    const group = inputEl.closest('.form-group');
+    if (!group) return;
+    const errorEl = group.querySelector('.form-error');
+    if (errorEl) errorEl.textContent = msg;
+    if (msg) {
+      group.classList.add('error');
+    } else {
+      group.classList.remove('error');
+    }
+  }
+
+  function validateField(inputEl) {
+    const value = inputEl.value.trim();
+    if (!value) {
+      setFieldError(inputEl, 'Toto pole je povinné.');
+      return false;
+    }
+    if (inputEl.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      setFieldError(inputEl, 'Zadejte platný e-mail.');
+      return false;
+    }
+    setFieldError(inputEl, '');
+    return true;
+  }
+
+  emailEl.addEventListener('blur', function () { validateField(this); });
+  passwordEl.addEventListener('blur', function () { validateField(this); });
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    alert.className = 'alert';
+    clearAlert();
+    const emailOk = validateField(emailEl);
+    const passwordOk = validateField(passwordEl);
+    if (!emailOk || !passwordOk) return;
+
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span> Přihlašování…';
 
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
+    const email = emailEl.value.trim();
+    const password = passwordEl.value;
 
     try {
       const res = await fetch('/api/v1/auth/login/', {
@@ -61,7 +102,7 @@
       const data = await res.json();
 
       if (!res.ok) {
-        showError(data.detail || 'Přihlášení selhalo.');
+        showAlert(data.detail || 'Přihlášení selhalo.');
         return;
       }
 
@@ -71,7 +112,7 @@
 
       window.location.href = '/accounts/dashboard/';
     } catch {
-      showError('Chyba sítě. Zkuste to znovu.');
+      showAlert('Chyba sítě. Zkuste to znovu.');
     } finally {
       btn.disabled = false;
       btn.textContent = 'Přihlásit se';

@@ -9,6 +9,9 @@ class TimerManager {
     this.projects = [];
     this.todayCommits = [];
     this.tickInterval = null;
+    this.syncInterval = null;
+    this._visibilityHandler = null;
+    this._hiddenAt = null;
     // Attach handlers synchronously so they're always ready before async init
     this.attachEventListeners();
     this.init();
@@ -47,7 +50,9 @@ class TimerManager {
     document.getElementById('stopBtn')?.addEventListener('click', () => {
       this.openCommitModal(false);
     });
-
+    // Pause / Resume
+    document.getElementById('pauseBtn')?.addEventListener('click', () => this.pauseTimer());
+    document.getElementById('resumeBtn')?.addEventListener('click', () => this.resumeTimer());
     // Commit modal form
     document.getElementById('commitForm')?.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -99,6 +104,70 @@ class TimerManager {
     }
   }
 
+  /**
+   * Re-sync running state + today commits from backend.
+   * Called on visibility change and periodically.
+   */
+  async _syncFromBackend() {
+    try {
+      const result = await window.api.workcommits.running();
+      const wasRunning = !!(this.runningCommit && this.runningCommit.id);
+      const wasPaused = !!(this.runningCommit && this.runningCommit.is_paused);
+      const isRunning = !!(result && result.id);
+      const isPaused = !!(result && result.is_paused);
+      this.runningCommit = result || null;
+      if (wasRunning !== isRunning || wasPaused !== isPaused) {
+        this.renderTimerWidget();
+      } else if (isRunning && !isPaused) {
+        // Re-anchor tick to reduce drift
+        this.stopTick();
+        this.startTick();
+      }
+    } catch (err) {
+      console.error('[TimerManager] sync running failed:', err);
+    }
+    // Always refresh today list so totals stay accurate
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      this.todayCommits = await window.api.workcommits.list({ date: today });
+      this.renderTodayList();
+    } catch (err) {
+      console.error('[TimerManager] sync today list failed:', err);
+    }
+  }
+
+  _startBackgroundSync() {
+    // Visibility-change handler: re-sync immediately when tab becomes visible
+    if (!this._visibilityHandler) {
+      this._visibilityHandler = () => {
+        if (document.visibilityState === 'visible') {
+          // If hidden for > 3 s, force a backend re-sync
+          const hiddenMs = this._hiddenAt ? Date.now() - this._hiddenAt : Infinity;
+          if (hiddenMs > 3000) this._syncFromBackend();
+          this._hiddenAt = null;
+        } else {
+          this._hiddenAt = Date.now();
+        }
+      };
+      document.addEventListener('visibilitychange', this._visibilityHandler);
+    }
+    // Periodic sync every 30 s (keeps "odpracov\u00e1no dnes" accurate)
+    if (!this.syncInterval) {
+      this.syncInterval = setInterval(() => this._syncFromBackend(), 30_000);
+    }
+  }
+
+  _stopBackgroundSync() {
+    if (this._visibilityHandler) {
+      document.removeEventListener('visibilitychange', this._visibilityHandler);
+      this._visibilityHandler = null;
+    }
+    if (this.syncInterval) {
+      clearInterval(this.syncInterval);
+      this.syncInterval = null;
+    }
+  }
+
   async loadTodayCommits() {
     try {
       const today = new Date().toISOString().split('T')[0];
@@ -122,25 +191,54 @@ class TimerManager {
       document.getElementById('runningProject').textContent =
         this.runningCommit.project_name || '—';
 
-      // Start the tick
       this.stopTick();
-      this.startTick(this.runningCommit.elapsed_seconds || 0);
+
+      const isPaused = !!this.runningCommit.is_paused;
+      const pauseBtn  = document.getElementById('pauseBtn');
+      const resumeBtn = document.getElementById('resumeBtn');
+      const statusLabel = document.getElementById('timerStatusLabel');
+      const card = runningSection.querySelector('.timer-card');
+
+      if (isPaused) {
+        if (pauseBtn)  pauseBtn.style.display  = 'none';
+        if (resumeBtn) resumeBtn.style.display = 'inline-flex';
+        if (statusLabel) statusLabel.textContent = 'Pozastaveno';
+        if (card) card.classList.add('timer-card--paused');
+        // Freeze display at current elapsed work time
+        this.updateTimerDisplay(this.runningCommit.elapsed_seconds || 0);
+      } else {
+        if (pauseBtn)  pauseBtn.style.display  = 'inline-flex';
+        if (resumeBtn) resumeBtn.style.display = 'none';
+        if (statusLabel) statusLabel.textContent = 'Pracuješ na';
+        if (card) card.classList.remove('timer-card--paused');
+        this.startTick();
+      }
+
+      this._startBackgroundSync();
     } else {
       runningSection.style.display = 'none';
       startSection.style.display = 'block';
       this.stopTick();
+      this._stopBackgroundSync();
       document.getElementById('timerDisplay').textContent = '00:00:00';
     }
   }
 
-  startTick(initialSeconds) {
-    let elapsed = initialSeconds;
-    this.updateTimerDisplay(elapsed);
-
-    this.tickInterval = setInterval(() => {
-      elapsed++;
+  /**
+   * Clock-based tick anchored to backend elapsed_seconds.
+   * elapsed_seconds already excludes all paused time, so the display
+   * stays accurate even after multiple pause/resume cycles.
+   */
+  startTick() {
+    const elapsedMs = (this.runningCommit.elapsed_seconds || 0) * 1000;
+    this._tickAdjustedStartMs = Date.now() - elapsedMs;
+    const tick = () => {
+      const elapsed = Math.floor((Date.now() - this._tickAdjustedStartMs) / 1000);
       this.updateTimerDisplay(elapsed);
-    }, 1000);
+      this._updateTodayTotal();
+    };
+    tick();
+    this.tickInterval = setInterval(tick, 1000);
   }
 
   stopTick() {
@@ -148,6 +246,7 @@ class TimerManager {
       clearInterval(this.tickInterval);
       this.tickInterval = null;
     }
+    this._tickAdjustedStartMs = null;
   }
 
   updateTimerDisplay(totalSeconds) {
@@ -159,11 +258,89 @@ class TimerManager {
     if (el) el.textContent = `${fmt(h)}:${fmt(m)}:${fmt(s)}`;
   }
 
+  /**
+   * Compute and display today's total work time.
+   * Includes all finished commits + the currently running session (live).
+   * Called every second from startTick() and after every data refresh.
+   */
+  _updateTodayTotal() {
+    const allFinished = this.todayCommits.filter(c => !c.is_running);
+    let total = allFinished.reduce((sum, c) => sum + (c.duration_seconds || 0), 0);
+
+    if (this.runningCommit && this.runningCommit.id) {
+      if (this._tickAdjustedStartMs && !this.runningCommit.is_paused) {
+        // Live elapsed — same anchor as the clock display
+        total += Math.floor((Date.now() - this._tickAdjustedStartMs) / 1000);
+      } else {
+        // Paused or no tick yet — use the last known elapsed from backend
+        total += this.runningCommit.elapsed_seconds || 0;
+      }
+    }
+
+    const totalEl = document.getElementById('todayTotal');
+    if (totalEl) totalEl.textContent = this.formatDuration(total);
+  }
+
+  async pauseTimer() {
+    if (!this.runningCommit || this.runningCommit.is_paused) return;
+    const btn = document.getElementById('pauseBtn');
+    if (btn) { btn.disabled = true; btn.textContent = '…'; }
+    try {
+      const result = await window.api.workcommits.pause(this.runningCommit.id);
+      this.runningCommit = result;
+      this.renderTimerWidget();
+    } catch (err) {
+      UIManager.error(err.message || 'Chyba při pozastavení timeru.');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Pauza';
+      }
+    }
+  }
+
+  async resumeTimer() {
+    if (!this.runningCommit || !this.runningCommit.is_paused) return;
+    const btn = document.getElementById('resumeBtn');
+    if (btn) { btn.disabled = true; btn.textContent = '…'; }
+    try {
+      const result = await window.api.workcommits.resume(this.runningCommit.id);
+      this.runningCommit = result;
+      this.renderTimerWidget();
+    } catch (err) {
+      UIManager.error(err.message || 'Chyba při obnovení timeru.');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg> Pokračovat';
+      }
+    }
+  }
+
   async startTimer() {
-    const projectId = document.getElementById('projectSelect')?.value;
+    const select = document.getElementById('projectSelect');
+    const projectId = select?.value;
     if (!projectId) {
       UIManager.error('Vyberte projekt pro spuštění timeru.');
+      const group = select?.closest('.form-group');
+      if (group) {
+        group.classList.add('error');
+        let errorEl = group.querySelector('.form-error');
+        if (!errorEl) {
+          errorEl = document.createElement('div');
+          errorEl.className = 'form-error';
+          group.appendChild(errorEl);
+        }
+        errorEl.textContent = 'Vyberte projekt.';
+      }
       return;
+    }
+    // Clear inline error on valid selection
+    const group = select?.closest('.form-group');
+    if (group) {
+      group.classList.remove('error');
+      const errorEl = group.querySelector('.form-error');
+      if (errorEl) errorEl.textContent = '';
     }
 
     if (!window.api || !window.api.workcommits || typeof window.api.workcommits.start !== 'function') {
@@ -327,6 +504,7 @@ class TimerManager {
     if (finished.length === 0) {
       if (tableWrap) tableWrap.style.display = 'none';
       if (emptyState) emptyState.style.display = 'block';
+      this._updateTodayTotal();
       return;
     }
 
@@ -346,10 +524,8 @@ class TimerManager {
       </tr>
     `).join('');
 
-    // Update total
-    const total = finished.reduce((sum, c) => sum + (c.duration_seconds || 0), 0);
-    const totalEl = document.getElementById('todayTotal');
-    if (totalEl) totalEl.textContent = this.formatDuration(total);
+    // Update total (accounts for running commit + all finished)
+    this._updateTodayTotal();
 
     // Inline tag edit
     tbody.querySelectorAll('.commit-tag-wrap').forEach(wrap => {

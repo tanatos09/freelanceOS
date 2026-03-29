@@ -24,6 +24,8 @@ class WorkCommit(models.Model):
     description = models.CharField(max_length=100, blank=True, default="")
     tag = models.CharField(max_length=50, null=True, blank=True, default=None)
     duration_seconds = models.IntegerField(default=0)
+    paused_at = models.DateTimeField(null=True, blank=True)
+    total_paused_seconds = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -42,14 +44,36 @@ class WorkCommit(models.Model):
     def is_running(self):
         return self.end_time is None
 
+    @property
+    def is_paused(self):
+        return self.is_running and self.paused_at is not None
+
+    def pause(self):
+        """Pause the running timer."""
+        if self.is_running and not self.is_paused:
+            self.paused_at = timezone.now()
+            self.save(update_fields=["paused_at"])
+
+    def resume(self):
+        """Resume a paused timer, accumulating the pause duration."""
+        if self.is_paused:
+            paused_duration = int((timezone.now() - self.paused_at).total_seconds())
+            self.total_paused_seconds += paused_duration
+            self.paused_at = None
+            self.save(update_fields=["paused_at", "total_paused_seconds"])
+
     def stop(self, description=""):
-        """Stop the timer and compute duration."""
+        """Stop the timer and compute actual work duration (excluding paused time)."""
         if self.is_running:
+            if self.is_paused:
+                paused_duration = int((timezone.now() - self.paused_at).total_seconds())
+                self.total_paused_seconds += paused_duration
+                self.paused_at = None
             self.end_time = timezone.now()
             if description:
                 self.description = description
-            delta = self.end_time - self.start_time
-            self.duration_seconds = max(0, int(delta.total_seconds()))
+            total_elapsed = int((self.end_time - self.start_time).total_seconds())
+            self.duration_seconds = max(0, total_elapsed - self.total_paused_seconds)
             self.save()
 
     def duration_hours(self):

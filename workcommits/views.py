@@ -167,6 +167,46 @@ def workcommit_stop(request, pk):
     return Response(WorkCommitSerializer(commit).data)
 
 
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def workcommit_pause(request, pk):
+    """
+    POST /api/v1/workcommits/{pk}/pause/
+    Pause the running timer without ending the session.
+    """
+    try:
+        commit = WorkCommit.objects.get(pk=pk, user=request.user)
+    except WorkCommit.DoesNotExist:
+        return Response({"detail": "Commit nenalezen."}, status=status.HTTP_404_NOT_FOUND)
+
+    if not commit.is_running:
+        return Response({"detail": "Timer neběží."}, status=status.HTTP_400_BAD_REQUEST)
+    if commit.is_paused:
+        return Response({"detail": "Timer je již pozastaven."}, status=status.HTTP_400_BAD_REQUEST)
+
+    commit.pause()
+    return Response(WorkCommitSerializer(commit).data)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def workcommit_resume(request, pk):
+    """
+    POST /api/v1/workcommits/{pk}/resume/
+    Resume a previously paused timer.
+    """
+    try:
+        commit = WorkCommit.objects.get(pk=pk, user=request.user)
+    except WorkCommit.DoesNotExist:
+        return Response({"detail": "Commit nenalezen."}, status=status.HTTP_404_NOT_FOUND)
+
+    if not commit.is_paused:
+        return Response({"detail": "Timer není pozastaven."}, status=status.HTTP_400_BAD_REQUEST)
+
+    commit.resume()
+    return Response(WorkCommitSerializer(commit).data)
+
+
 @api_view(["GET", "PATCH", "DELETE"])
 @permission_classes([IsAuthenticated])
 def workcommit_detail(request, pk):

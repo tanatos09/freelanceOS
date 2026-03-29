@@ -18,11 +18,19 @@
   <div class="timer-card timer-card--running">
     <div class="timer-dot-row">
       <span class="timer-pulse"></span>
-      <span class="timer-status-label">Pracuješ na</span>
+      <span class="timer-status-label" id="timerStatusLabel">Pracuješ na</span>
     </div>
     <div class="timer-running-project" id="runningProject">—</div>
     <div class="timer-clock" id="timerDisplay">00:00:00</div>
     <div class="timer-card-actions">
+      <button id="pauseBtn" class="btn btn-warning-soft">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        Pauza
+      </button>
+      <button id="resumeBtn" class="btn btn-success-soft" style="display:none">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Pokračovat
+      </button>
       <button id="commitBtn" class="btn btn-primary">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
         Commit + pokračovat

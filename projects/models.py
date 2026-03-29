@@ -97,31 +97,25 @@ class Project(models.Model):
         return delta.days
 
     def progress_percent(self):
-        """Procenta hotovosti (dle hodin nebo na základě estimace)."""
-        if not self.estimated_hours or self.estimated_hours == 0:
+        """Procentuální postup projektu."""
+        if not self.estimated_hours:
             return 0
 
         actual_hours = self.actual_hours()
-        if actual_hours == 0:
-            return 0
+        estimated_hours = float(self.estimated_hours)  # Ensure consistent types
 
-        progress = (actual_hours / self.estimated_hours) * 100
-        return min(100, round(progress, 1))  # Max 100%
+        progress = (actual_hours / estimated_hours) * 100
+        return min(progress, 100)  # Cap at 100%
 
     def actual_hours(self):
-        """Součet všech hodin na tomto projektu."""
-        # TODO: Integrace s timetracking app
-        # Zatím vrátíme 0 - later bude načítcat z TimeEntry
-        try:
-            from timetracking.models import TimeEntry
+        """Součet odpracovaných hodin na projektu z WorkCommit záznamů."""
+        from django.db.models import Sum
+        from workcommits.models import WorkCommit
 
-            total = TimeEntry.objects.filter(project=self).aggregate(
-                total=models.Sum("duration_hours")
-            )["total"]
-            return total or 0
-        except (ImportError, ModuleNotFoundError):
-            # Timetracking aplikace ainda není k dispozici
-            return 0
+        total = WorkCommit.objects.filter(
+            project=self, end_time__isnull=False
+        ).aggregate(total=Sum("duration_seconds"))["total"]
+        return round((total or 0) / 3600, 2)
 
     def effective_hourly_rate(self):
         """Efektivní hodinová sazba – projektová, nebo fallback na klienta."""

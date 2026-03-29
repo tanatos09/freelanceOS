@@ -8,17 +8,17 @@ Tato sekce bude obsahovat seznam aktuálních úkolů rozdělený podle priority
 
 ### 🔴 MUST (kritické opravy)
 
-* Opravit validaci formulářů (zobrazovat chyby přímo v UI, ne jen v network)
-* Opravit flow vytváření projektu (nejdřív klient, pak projekt)
-* Opravit nekonzistenci timeru (frontend vs backend čas)
-* Opravit náhodné selhání ukládání projektu
+* ✅ Opravit validaci formulářů (zobrazovat chyby přímo v UI, ne jen v network)
+* ✅ Opravit flow vytváření projektu (nejdřív klient, pak projekt)
+* ✅ Opravit nekonzistenci timeru (frontend vs backend čas)
+* ✅ Opravit náhodné selhání ukládání projektu
 
 ### 🟡 SHOULD (UX vylepšení)
 
-* Přidat datepicker pro výběr datumu
-* Přidat pause funkci pro timer
-* Opravit "odpracováno dnes" (neaktualizuje se správně)
-* Vylepšit notifikace (viditelnost a konzistence)
+* ✅ Přidat datepicker pro výběr datumu
+* ✅ Přidat pause funkci pro timer
+* ✅ Opravit "odpracováno dnes" (neaktualizuje se správně)
+* ✅ Vylepšit notifikace (viditelnost a konzistence)
 
 ### 🟢 NICE TO HAVE (budoucí vylepšení)
 

@@ -4,37 +4,75 @@
  */
 
 class UIManager {
-  /**
-   * Show alert message
-   */
-  static alert(message, type = 'error') {
-    const alertEl = document.createElement('div');
-    alertEl.className = `alert alert-${type} show`;
-    alertEl.textContent = message;
-    alertEl.style.position = 'fixed';
-    alertEl.style.top = '80px';
-    alertEl.style.right = '20px';
-    alertEl.style.maxWidth = '400px';
-    alertEl.style.zIndex = '2000';
-    document.body.appendChild(alertEl);
+  // ── Toast notification system ────────────────────────────────────────────
 
-    setTimeout(() => {
-      alertEl.remove();
-    }, 4000);
+  static _getToastContainer() {
+    let container = document.getElementById('toastContainer');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'toastContainer';
+      container.className = 'toast-container';
+      document.body.appendChild(container);
+    }
+    return container;
   }
 
   /**
-   * Show error toast
+   * Show a toast notification.
+   * @param {string} message
+   * @param {'error'|'success'|'info'|'warning'} type
+   * @param {number} [duration] ms before auto-dismiss (0 = no auto-dismiss)
    */
-  static error(message) {
-    this.alert(message, 'error');
+  static alert(message, type = 'error', duration) {
+    const ms = duration ?? (type === 'error' ? 5000 : 3500);
+
+    const icons = {
+      error:   '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+      success: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>',
+      info:    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+      warning: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+    };
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
+    toast.innerHTML = `
+      <span class="toast-icon">${icons[type] || icons.info}</span>
+      <span class="toast-message">${this._escapeHtml(message)}</span>
+      <button class="toast-close" aria-label="Zavřít">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      ${ms > 0 ? '<div class="toast-progress"><div class="toast-progress-bar"></div></div>' : ''}
+    `;
+
+    const dismiss = () => {
+      toast.classList.add('toast-hiding');
+      toast.addEventListener('animationend', () => toast.remove(), { once: true });
+    };
+
+    toast.querySelector('.toast-close').addEventListener('click', dismiss);
+
+    this._getToastContainer().appendChild(toast);
+
+    // Trigger enter animation on next frame
+    requestAnimationFrame(() => toast.classList.add('toast-visible'));
+
+    if (ms > 0) {
+      const bar = toast.querySelector('.toast-progress-bar');
+      if (bar) bar.style.animationDuration = `${ms}ms`;
+      setTimeout(dismiss, ms);
+    }
   }
 
-  /**
-   * Show success toast
-   */
-  static success(message) {
-    this.alert(message, 'success');
+  static error(message)   { this.alert(message, 'error'); }
+  static success(message) { this.alert(message, 'success'); }
+  static info(message)    { this.alert(message, 'info'); }
+  static warning(message) { this.alert(message, 'warning'); }
+
+  static _escapeHtml(text) {
+    const d = document.createElement('div');
+    d.textContent = text;
+    return d.innerHTML;
   }
 
   /**
@@ -217,18 +255,21 @@ class FormHelper {
   static clear(formEl) {
     formEl.reset();
     formEl.querySelectorAll('.form-error').forEach(el => {
-      el.remove();
+      el.textContent = '';
+    });
+    formEl.querySelectorAll('.form-group.error').forEach(el => {
+      el.classList.remove('error');
     });
   }
 
   /**
-   * Show field errors
+   * Show field errors from API response.
+   * Marks .form-group with .error class so red border + message are visible.
    */
   static showErrors(formEl, errors) {
-    // Clear existing errors
-    formEl.querySelectorAll('.form-error').forEach(el => {
-      el.remove();
-    });
+    // Clear existing errors and error states
+    formEl.querySelectorAll('.form-error').forEach(el => { el.textContent = ''; });
+    formEl.querySelectorAll('.form-group.error').forEach(el => el.classList.remove('error'));
 
     // Show new errors
     Object.entries(errors).forEach(([field, messages]) => {
@@ -240,13 +281,95 @@ class FormHelper {
       }
       const input = formEl.elements[field];
       if (input) {
-        const error = document.createElement('div');
-        error.className = 'form-error';
-        error.textContent = msg;
-        input.parentNode.appendChild(error);
+        const group = input.closest('.form-group');
+        let errorEl = group ? group.querySelector('.form-error') : null;
+        if (!errorEl) {
+          errorEl = document.createElement('div');
+          errorEl.className = 'form-error';
+          input.parentNode.appendChild(errorEl);
+        }
+        errorEl.textContent = msg;
+        if (group) group.classList.add('error');
       } else {
         // Field not in form – show as toast fallback
         UIManager.error(`${field}: ${msg}`);
+      }
+    });
+  }
+
+  /**
+   * Validate required fields and email format, show inline errors.
+   * Returns true if all required fields pass, false otherwise.
+   */
+  static validate(formEl) {
+    formEl.querySelectorAll('.form-error').forEach(el => { el.textContent = ''; });
+    formEl.querySelectorAll('.form-group.error').forEach(el => el.classList.remove('error'));
+
+    let valid = true;
+    formEl.querySelectorAll('input[required], select[required], textarea[required]').forEach(input => {
+      const group = input.closest('.form-group');
+      let errorEl = group ? group.querySelector('.form-error') : null;
+      if (!errorEl && group) {
+        errorEl = document.createElement('div');
+        errorEl.className = 'form-error';
+        group.appendChild(errorEl);
+      }
+      const value = input.value.trim();
+      let msg = '';
+      if (!value) {
+        msg = 'Toto pole je povinné.';
+      } else if (input.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        msg = 'Zadejte platný e-mail.';
+      }
+      if (msg) {
+        if (group) group.classList.add('error');
+        if (errorEl) errorEl.textContent = msg;
+        valid = false;
+      }
+    });
+    return valid;
+  }
+
+  /**
+   * Attach per-field blur validation to all inputs in a form.
+   * Validates required and email fields on blur; selects also on change.
+   */
+  static attachBlurValidation(formEl) {
+    const validateField = (input) => {
+      const group = input.closest('.form-group');
+      let errorEl = group ? group.querySelector('.form-error') : null;
+      if (!errorEl && group) {
+        errorEl = document.createElement('div');
+        errorEl.className = 'form-error';
+        group.appendChild(errorEl);
+      }
+      if (!input.required) {
+        if (group) group.classList.remove('error');
+        if (errorEl) errorEl.textContent = '';
+        return;
+      }
+      const value = input.value.trim();
+      let msg = '';
+      if (!value) {
+        msg = 'Toto pole je povinné.';
+      } else if (input.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        msg = 'Zadejte platný e-mail.';
+      }
+      if (msg) {
+        if (group) group.classList.add('error');
+        if (errorEl) errorEl.textContent = msg;
+      } else {
+        if (group) group.classList.remove('error');
+        if (errorEl) errorEl.textContent = '';
+      }
+    };
+
+    formEl.querySelectorAll('input, select, textarea').forEach(input => {
+      if (input._blurValidationAttached) return;
+      input._blurValidationAttached = true;
+      input.addEventListener('blur', () => validateField(input));
+      if (input.tagName === 'SELECT') {
+        input.addEventListener('change', () => validateField(input));
       }
     });
   }

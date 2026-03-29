@@ -26,6 +26,9 @@ class SidebarTimer {
   }
 
   _attachListeners() {
+    document.getElementById('miniTimerPauseBtn')
+      ?.addEventListener('click', () => this._togglePause());
+
     document.getElementById('miniTimerCommitBtn')
       ?.addEventListener('click', () => this._openCommitForm('commit'));
 
@@ -71,8 +74,21 @@ class SidebarTimer {
       running.style.display = 'block';
       document.getElementById('miniTimerProject').textContent =
         this.runningCommit.project_name || '—';
+
+      // Update pause button label based on paused state
+      const pauseBtn = document.getElementById('miniTimerPauseBtn');
+      if (pauseBtn) {
+        pauseBtn.textContent = this.runningCommit.is_paused ? '▶ Pokr.' : '⏸ Pauza';
+        pauseBtn.classList.toggle('mini-timer-btn--paused', !!this.runningCommit.is_paused);
+      }
+
       this._stopTick();
-      this._startTick();
+      if (this.runningCommit.is_paused) {
+        // Frozen display
+        this._updateDisplay(this.runningCommit.elapsed_seconds || 0);
+      } else {
+        this._startTick();
+      }
     } else {
       idle.style.display    = 'block';
       running.style.display = 'none';
@@ -84,8 +100,11 @@ class SidebarTimer {
   static REMINDER_THRESHOLD_MS = 4 * 60 * 60 * 1000;
 
   _startTick() {
+    // Anchor to backend elapsed_seconds so pauses are reflected accurately
+    const elapsedMs = (this.runningCommit.elapsed_seconds || 0) * 1000;
+    const adjustedStartMs = Date.now() - elapsedMs;
     const tick = () => {
-      const elapsed = Date.now() - new Date(this.runningCommit.start_time).getTime();
+      const elapsed = Date.now() - adjustedStartMs;
       this._updateDisplay(Math.floor(elapsed / 1000));
     };
     tick();
@@ -115,6 +134,34 @@ class SidebarTimer {
   _hideReminderDialog() {
     const dialog = document.getElementById('timerReminderDialog');
     if (dialog) dialog.style.display = 'none';
+  }
+
+  async _togglePause() {
+    if (!this.runningCommit) return;
+    const pauseBtn = document.getElementById('miniTimerPauseBtn');
+    if (pauseBtn) { pauseBtn.disabled = true; pauseBtn.textContent = '…'; }
+    try {
+      let result;
+      if (this.runningCommit.is_paused) {
+        result = await window.api.workcommits.resume(this.runningCommit.id);
+      } else {
+        result = await window.api.workcommits.pause(this.runningCommit.id);
+      }
+      this.runningCommit = result;
+      this._render();
+      // Sync with TimerManager if on the timer page
+      if (typeof timerManager !== 'undefined' && timerManager) {
+        timerManager.runningCommit = this.runningCommit;
+        timerManager.renderTimerWidget();
+      }
+    } catch (err) {
+      console.error('[SidebarTimer] pause/resume:', err);
+      if (typeof UIManager !== 'undefined') {
+        UIManager.error(err.message || 'Chyba při pauze timeru.');
+      }
+    } finally {
+      if (pauseBtn) pauseBtn.disabled = false;
+    }
   }
 
   async _stopFromReminder() {

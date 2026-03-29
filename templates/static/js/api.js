@@ -8,6 +8,8 @@ class APIClient {
     this.baseURL = '/api/v1';
     this.accessToken = localStorage.getItem('access_token');
     this.refreshToken = localStorage.getItem('refresh_token');
+    // Singleton Promise: ensures concurrent 401s share one refresh call
+    this._refreshPromise = null;
 
     // API sub-objects defined in constructor (not class fields) to guarantee
     // 'this' is fully bound before any arrow function references it.
@@ -46,6 +48,8 @@ class APIClient {
         this.post(`/workcommits/${id}/commit/`, { description, continue: continueTimer, tag }),
       stop: (id, description = '', tag = null) =>
         this.post(`/workcommits/${id}/stop/`, { description, tag }),
+      pause: (id) => this.post(`/workcommits/${id}/pause/`, {}),
+      resume: (id) => this.post(`/workcommits/${id}/resume/`, {}),
       delete: (id) => this.delete(`/workcommits/${id}/`),
       patch: (id, data) => this.patch(`/workcommits/${id}/`, data),
     };
@@ -69,37 +73,44 @@ class APIClient {
   }
 
   /**
-   * Refresh access token if needed
+   * Refresh access token if needed.
+   * Uses a singleton Promise so concurrent 401s always share one refresh call
+   * instead of each racing to invalidate the refresh token.
    */
   async refreshAccessToken() {
-    if (!this.refreshToken) {
-      this.logout();
-      return false;
-    }
+    if (this._refreshPromise) return this._refreshPromise;
 
-    try {
-      const res = await fetch(`${this.baseURL}/auth/token/refresh/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refresh: this.refreshToken }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        this.accessToken = data.access;
-        this.refreshToken = data.refresh || this.refreshToken;
-        localStorage.setItem('access_token', this.accessToken);
-        localStorage.setItem('refresh_token', this.refreshToken);
-        return true;
-      } else {
+    this._refreshPromise = (async () => {
+      if (!this.refreshToken) {
         this.logout();
         return false;
       }
-    } catch (err) {
-      console.error('Token refresh failed:', err);
-      this.logout();
-      return false;
-    }
+      try {
+        const res = await fetch(`${this.baseURL}/auth/token/refresh/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh: this.refreshToken }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          this.accessToken = data.access;
+          this.refreshToken = data.refresh || this.refreshToken;
+          localStorage.setItem('access_token', this.accessToken);
+          localStorage.setItem('refresh_token', this.refreshToken);
+          return true;
+        }
+        this.logout();
+        return false;
+      } catch (err) {
+        console.error('Token refresh failed:', err);
+        this.logout();
+        return false;
+      } finally {
+        this._refreshPromise = null;
+      }
+    })();
+
+    return this._refreshPromise;
   }
 
   /**
@@ -122,14 +133,18 @@ class APIClient {
       throw new Error('Síťová chyba. Zkontrolujte připojení.');
     }
 
-    // Handle 401 Unauthorized - try refresh token
-    if (response.status === 401) {
+    // Handle 401 Unauthorized - try refresh token (at most once per call chain)
+    if (response.status === 401 && !options._retried) {
       const refreshed = await this.refreshAccessToken();
       if (!refreshed) {
-        throw new Error('Vaše relace vypršela. Prosím přihlaste se znovu.');
+        throw new Error('Vaše relace vypršela. Prosím přihlašte se znovu.');
       }
-      // Retry original request with new token
-      return this.request(endpoint, options);
+      // Retry original request with new token; _retried prevents infinite loop
+      return this.request(endpoint, { ...options, _retried: true });
+    }
+
+    if (response.status === 401) {
+      throw new Error('Vaše relace vypršela. Prosím přihlašte se znovu.');
     }
 
     // Parse response

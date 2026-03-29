@@ -11,4 +11,6 @@ urlpatterns = [
     path("<int:pk>/", views.workcommit_detail, name="detail"),
     path("<int:pk>/commit/", views.workcommit_commit, name="commit"),
     path("<int:pk>/stop/", views.workcommit_stop, name="stop"),
+    path("<int:pk>/pause/", views.workcommit_pause, name="pause"),
+    path("<int:pk>/resume/", views.workcommit_resume, name="resume"),
 ]

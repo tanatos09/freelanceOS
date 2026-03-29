@@ -27,6 +27,7 @@ class ClientsManager {
       e.preventDefault();
       this.handleFormSubmit();
     });
+    FormHelper.attachBlurValidation(document.getElementById('clientForm'));
 
     document.getElementById('searchInput')?.addEventListener(
       'input',
@@ -156,6 +157,7 @@ class ClientsManager {
 
   async handleFormSubmit() {
     const form = document.getElementById('clientForm');
+    if (!FormHelper.validate(form)) return;
     const data = FormHelper.getData(form);
     try {
       FormHelper.setLoading(form, true);
